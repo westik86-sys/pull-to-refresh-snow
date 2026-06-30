@@ -146,6 +146,11 @@ private struct EmojiLayerTuning {
     let particleRotationSpeedRange: ClosedRange<CGFloat>
 }
 
+private struct EmojiRotationVariant {
+    let name: String
+    let speedMultiplier: CGFloat
+}
+
 struct SnowThemeConfiguration: Equatable {
     let preset: SnowVisualPreset
     let layers: [SnowParticleStyle]
@@ -358,6 +363,12 @@ struct SnowThemeConfiguration: Equatable {
         let baseConfiguration = snowConfiguration(for: preset)
         let symbols = emojiSymbols.isEmpty ? [SnowEffectSettings.defaultEmojiSymbol] : emojiSymbols
         let densityShare = CGFloat(symbols.count)
+        let rotationVariants = [
+            EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.36),
+            EmojiRotationVariant(name: "clock-slow", speedMultiplier: 0.48),
+            EmojiRotationVariant(name: "counter-fast", speedMultiplier: -0.78),
+            EmojiRotationVariant(name: "clock-fast", speedMultiplier: 1.0)
+        ]
         let layerTunings: [EmojiLayerTuning] = [
             EmojiLayerTuning(
                 name: "back-emoji",
@@ -403,23 +414,31 @@ struct SnowThemeConfiguration: Equatable {
         let layers = baseConfiguration.layers.enumerated().flatMap { layerIndex, baseLayer in
             let visualIndex = min(layerIndex, layerTunings.count - 1)
             let tuning = layerTunings[visualIndex]
+            let maxRotationSpeed = max(
+                abs(tuning.particleRotationSpeedRange.lowerBound),
+                abs(tuning.particleRotationSpeedRange.upperBound)
+            )
 
-            return symbols.enumerated().map { symbolIndex, emojiSymbol in
-                baseLayer.replacingVisuals(
-                    name: "\(tuning.name)-\(symbolIndex)",
-                    textureSource: .emoji(emojiSymbol),
-                    textureDiameter: tuning.textureDiameter,
-                    textureSoftness: tuning.textureSoftness,
-                    birthRate: tuning.birthRate / densityShare,
-                    particleScale: tuning.particleScale,
-                    particleScaleRange: tuning.particleScaleRange,
-                    particleSpeed: tuning.particleSpeed,
-                    particleSpeedRange: tuning.particleSpeedRange,
-                    particleAlpha: tuning.particleAlpha,
-                    particleAlphaRange: tuning.particleAlphaRange,
-                    particleRotationSpeedRange: tuning.particleRotationSpeedRange,
-                    particleColorBlendFactor: 0
-                )
+            return symbols.enumerated().flatMap { symbolIndex, emojiSymbol in
+                rotationVariants.map { rotationVariant in
+                    let rotationSpeed = maxRotationSpeed * rotationVariant.speedMultiplier
+
+                    return baseLayer.replacingVisuals(
+                        name: "\(tuning.name)-\(symbolIndex)-\(rotationVariant.name)",
+                        textureSource: .emoji(emojiSymbol),
+                        textureDiameter: tuning.textureDiameter,
+                        textureSoftness: tuning.textureSoftness,
+                        birthRate: tuning.birthRate / densityShare / CGFloat(rotationVariants.count),
+                        particleScale: tuning.particleScale,
+                        particleScaleRange: tuning.particleScaleRange,
+                        particleSpeed: tuning.particleSpeed,
+                        particleSpeedRange: tuning.particleSpeedRange,
+                        particleAlpha: tuning.particleAlpha,
+                        particleAlphaRange: tuning.particleAlphaRange,
+                        particleRotationSpeedRange: rotationSpeed...rotationSpeed,
+                        particleColorBlendFactor: 0
+                    )
+                }
             }
         }
 

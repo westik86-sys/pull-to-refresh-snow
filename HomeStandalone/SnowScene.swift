@@ -214,6 +214,10 @@ final class SnowScene: SKScene {
             return CGFloat.random(in: style.particleRotationSpeedRange)
         }
 
+        if style.particleRotationSpeedRange.lowerBound == style.particleRotationSpeedRange.upperBound {
+            return style.particleRotationSpeedRange.lowerBound
+        }
+
         let maxMagnitude = max(
             abs(style.particleRotationSpeedRange.lowerBound),
             abs(style.particleRotationSpeedRange.upperBound)
