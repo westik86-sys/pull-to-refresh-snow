@@ -189,7 +189,12 @@ final class SnowScene: SKScene {
         emitter.particleAlphaRange = style.particleAlphaRange
         emitter.particleAlphaSpeed = 0
         emitter.particleAlphaSequence = makeAlphaSequence(for: style)
-        emitter.particleRotation = CGFloat.random(in: -CGFloat.pi...CGFloat.pi)
+        let initialRotationLimit = min(style.particleRotationRange / 2, CGFloat.pi)
+        if initialRotationLimit > 0 {
+            emitter.particleRotation = CGFloat.random(in: -initialRotationLimit...initialRotationLimit)
+        } else {
+            emitter.particleRotation = 0
+        }
         emitter.particleRotationRange = style.particleRotationRange
         emitter.particleRotationSpeed = CGFloat.random(in: style.particleRotationSpeedRange)
         emitter.emissionAngle = -CGFloat.pi / 2

@@ -94,6 +94,7 @@ extension SnowParticleStyle {
         let alpha = CGFloat(settings.alphaMultiplier)
         let lifetimeScale = CGFloat(max(settings.overlayHeightPercent, 25) / 25)
         let blur = CGFloat(settings.blurMultiplier)
+        let spin = settings.effectKind == .emoji ? CGFloat(settings.emojiSpin) : 1
 
         return SnowParticleStyle(
             name: name,
@@ -112,8 +113,8 @@ extension SnowParticleStyle {
             particleAlpha: min(max(particleAlpha * alpha, 0.05), 1.0),
             particleAlphaRange: min(max(particleAlphaRange * alpha, 0), 1.0),
             particleAlphaSpeedRange: particleAlphaSpeedRange,
-            particleRotationRange: particleRotationRange,
-            particleRotationSpeedRange: particleRotationSpeedRange,
+            particleRotationRange: particleRotationRange * spin,
+            particleRotationSpeedRange: (particleRotationSpeedRange.lowerBound * spin)...(particleRotationSpeedRange.upperBound * spin),
             emissionAngleRange: emissionAngleRange,
             xAccelerationRange: (xAccelerationRange.lowerBound * speed)...(xAccelerationRange.upperBound * speed),
             yAccelerationRange: (yAccelerationRange.lowerBound * speed)...(yAccelerationRange.upperBound * speed),

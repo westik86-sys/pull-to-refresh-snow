@@ -5504,7 +5504,7 @@ private struct SnowSettingsSheet: View {
 
                             Picker("Тип эффекта", selection: $snowSettings.effectKind) {
                                 Text("Снег").tag(PullRefreshEffectKind.snow)
-                                Text("Эмоджи").tag(PullRefreshEffectKind.emoji)
+                                Text("Emoji").tag(PullRefreshEffectKind.emoji)
                                 Text("Конфетти").tag(PullRefreshEffectKind.confetti)
                             }
                             .pickerStyle(.segmented)
@@ -5525,6 +5525,13 @@ private struct SnowSettingsSheet: View {
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                             }
+
+                            slider(
+                                title: "Вращение",
+                                value: $snowSettings.emojiSpin,
+                                range: 0...2.6,
+                                valueText: "\(Int((snowSettings.emojiSpin * 100).rounded()))%"
+                            )
                         }
 
                         if snowSettings.effectKind == .confetti {

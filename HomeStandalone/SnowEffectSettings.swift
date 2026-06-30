@@ -47,6 +47,7 @@ struct SnowEffectSettings: Equatable, Codable {
         var turbulenceMultiplier: Double = 1.0
         var overlayHeightPercent: Double = 25.0
         var blurMultiplier: Double = 1.0
+        var emojiSpin: Double = 1.0
         var confettiParticleMode: ConfettiParticleMode = .confetti
         var confettiCustomShape: ConfettiCustomShape = .star
         var confettiWind: Double = 0.18
@@ -66,6 +67,7 @@ struct SnowEffectSettings: Equatable, Codable {
             turbulenceMultiplier: Double = 1.0,
             overlayHeightPercent: Double = 25.0,
             blurMultiplier: Double = 1.0,
+            emojiSpin: Double = 1.0,
             confettiParticleMode: ConfettiParticleMode = .confetti,
             confettiCustomShape: ConfettiCustomShape = .star,
             confettiWind: Double = 0.18,
@@ -81,6 +83,7 @@ struct SnowEffectSettings: Equatable, Codable {
             self.turbulenceMultiplier = turbulenceMultiplier
             self.overlayHeightPercent = overlayHeightPercent
             self.blurMultiplier = blurMultiplier
+            self.emojiSpin = emojiSpin
             self.confettiParticleMode = confettiParticleMode
             self.confettiCustomShape = confettiCustomShape
             self.confettiWind = confettiWind
@@ -99,6 +102,7 @@ struct SnowEffectSettings: Equatable, Codable {
                 turbulenceMultiplier: turbulenceMultiplier.clamped(to: 0...1.8),
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
                 blurMultiplier: blurMultiplier.clamped(to: 0...2),
+                emojiSpin: emojiSpin.clamped(to: 0...2.6),
                 confettiParticleMode: confettiParticleMode,
                 confettiCustomShape: confettiCustomShape,
                 confettiWind: confettiWind.clamped(to: -1.0...1.0),
@@ -117,6 +121,7 @@ struct SnowEffectSettings: Equatable, Codable {
             case turbulenceMultiplier
             case overlayHeightPercent
             case blurMultiplier
+            case emojiSpin
             case confettiParticleMode
             case confettiCustomShape
             case confettiWind
@@ -135,6 +140,7 @@ struct SnowEffectSettings: Equatable, Codable {
             turbulenceMultiplier = try container.decodeIfPresent(Double.self, forKey: .turbulenceMultiplier) ?? 1.0
             overlayHeightPercent = try container.decodeIfPresent(Double.self, forKey: .overlayHeightPercent) ?? 25.0
             blurMultiplier = try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
+            emojiSpin = try container.decodeIfPresent(Double.self, forKey: .emojiSpin) ?? 1.0
             confettiParticleMode = try container.decodeIfPresent(ConfettiParticleMode.self, forKey: .confettiParticleMode) ?? .confetti
             confettiCustomShape = try container.decodeIfPresent(ConfettiCustomShape.self, forKey: .confettiCustomShape) ?? .star
             confettiWind = try container.decodeIfPresent(Double.self, forKey: .confettiWind) ?? 0.18
@@ -153,6 +159,7 @@ struct SnowEffectSettings: Equatable, Codable {
             try container.encode(turbulenceMultiplier, forKey: .turbulenceMultiplier)
             try container.encode(overlayHeightPercent, forKey: .overlayHeightPercent)
             try container.encode(blurMultiplier, forKey: .blurMultiplier)
+            try container.encode(emojiSpin, forKey: .emojiSpin)
             try container.encode(confettiParticleMode, forKey: .confettiParticleMode)
             try container.encode(confettiCustomShape, forKey: .confettiCustomShape)
             try container.encode(confettiWind, forKey: .confettiWind)
@@ -255,6 +262,11 @@ struct SnowEffectSettings: Equatable, Codable {
     var blurMultiplier: Double {
         get { preset(for: effectKind).blurMultiplier }
         set { updatePreset(for: effectKind) { $0.blurMultiplier = newValue } }
+    }
+
+    var emojiSpin: Double {
+        get { preset(for: effectKind).emojiSpin }
+        set { updatePreset(for: effectKind) { $0.emojiSpin = newValue } }
     }
 
     var confettiParticleMode: ConfettiParticleMode {
