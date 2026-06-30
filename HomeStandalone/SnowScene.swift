@@ -196,7 +196,7 @@ final class SnowScene: SKScene {
             emitter.particleRotation = 0
         }
         emitter.particleRotationRange = style.particleRotationRange
-        emitter.particleRotationSpeed = CGFloat.random(in: style.particleRotationSpeedRange)
+        emitter.particleRotationSpeed = particleRotationSpeed(for: style)
         emitter.emissionAngle = -CGFloat.pi / 2
         emitter.emissionAngleRange = style.emissionAngleRange
         emitter.xAcceleration = CGFloat.random(in: style.xAccelerationRange)
@@ -207,6 +207,23 @@ final class SnowScene: SKScene {
         emitter.fieldBitMask = Self.fieldMask
         emitter.targetNode = self
         emitterOffsets[ObjectIdentifier(emitter)] = style.offsetY
+    }
+
+    private func particleRotationSpeed(for style: SnowParticleStyle) -> CGFloat {
+        guard case .emoji = style.textureSource else {
+            return CGFloat.random(in: style.particleRotationSpeedRange)
+        }
+
+        let maxMagnitude = max(
+            abs(style.particleRotationSpeedRange.lowerBound),
+            abs(style.particleRotationSpeedRange.upperBound)
+        )
+        guard maxMagnitude > 0 else { return 0 }
+
+        let scalarSum = style.name.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+        let direction: CGFloat = scalarSum.isMultiple(of: 2) ? -1 : 1
+        let variation = CGFloat(scalarSum % 23) / 100
+        return direction * maxMagnitude * (0.8 + variation)
     }
 
     private func makeAlphaSequence(for style: SnowParticleStyle) -> SKKeyframeSequence {

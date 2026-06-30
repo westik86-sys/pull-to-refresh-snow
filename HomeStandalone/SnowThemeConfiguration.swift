@@ -370,7 +370,7 @@ struct SnowThemeConfiguration: Equatable {
                 particleSpeedRange: 18,
                 particleAlpha: 0.18,
                 particleAlphaRange: 0.06,
-                particleRotationSpeedRange: -0.28...0.28
+                particleRotationSpeedRange: -1.1...1.1
             ),
             EmojiLayerTuning(
                 name: "mid-emoji",
@@ -383,7 +383,7 @@ struct SnowThemeConfiguration: Equatable {
                 particleSpeedRange: 34,
                 particleAlpha: 0.48,
                 particleAlphaRange: 0.12,
-                particleRotationSpeedRange: -0.42...0.42
+                particleRotationSpeedRange: -1.6...1.6
             ),
             EmojiLayerTuning(
                 name: "front-emoji",
@@ -396,7 +396,7 @@ struct SnowThemeConfiguration: Equatable {
                 particleSpeedRange: 48,
                 particleAlpha: 0.32,
                 particleAlphaRange: 0.12,
-                particleRotationSpeedRange: -0.32...0.32
+                particleRotationSpeedRange: -1.25...1.25
             )
         ]
 
