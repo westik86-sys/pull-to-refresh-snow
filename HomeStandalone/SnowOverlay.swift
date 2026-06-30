@@ -80,7 +80,7 @@ struct SnowOverlay: View {
             .configuration(
                 for: colorScheme == .dark ? .dark : .light,
                 effect: settings.effectKind,
-                emojiSymbol: settings.resolvedEmojiSymbol
+                emojiSymbols: settings.resolvedEmojiSymbols
             )
             .applying(settings)
     }

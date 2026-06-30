@@ -5509,7 +5509,7 @@ private struct SnowSettingsSheet: View {
                                     .foregroundColor(.secondary)
 
                                 TextField(
-                                    "Введите emoji",
+                                    "🍂❄️✨",
                                     text: $snowSettings.emojiSymbol
                                 )
                                 .textFieldStyle(.roundedBorder)
@@ -5579,9 +5579,9 @@ private struct SnowSettingsSheet: View {
                     .disabled(!snowSettings.isEnabled)
 
                     Button {
-                        snowSettings = .default
+                        snowSettings.resetCurrentPreset()
                     } label: {
-                        Label("Сбросить настройки эффекта", systemImage: "arrow.counterclockwise")
+                        Label("Сбросить настройки пресета", systemImage: "arrow.counterclockwise")
                             .font(.system(size: 15, weight: .medium))
                     }
                     .buttonStyle(.bordered)

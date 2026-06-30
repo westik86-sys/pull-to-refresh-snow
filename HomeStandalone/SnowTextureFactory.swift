@@ -22,18 +22,9 @@ enum SnowTextureFactory {
         diameter: CGFloat,
         softness: CGFloat = 1
     ) -> SKTexture {
-        let softnessStep: Int
-        let cachedSoftness: CGFloat
-
-        switch source {
-        case .generated:
-            let normalizedSoftness = min(max(softness, 0), 2)
-            softnessStep = Int((normalizedSoftness * 20).rounded())
-            cachedSoftness = CGFloat(softnessStep) / 20
-        case .asset(_), .emoji(_):
-            softnessStep = 0
-            cachedSoftness = 0
-        }
+        let normalizedSoftness = min(max(softness, 0), 2)
+        let softnessStep = Int((normalizedSoftness * 20).rounded())
+        let cachedSoftness = CGFloat(softnessStep) / 20
 
         let key = SnowTextureCache.Key(
             source: source,
@@ -55,9 +46,19 @@ enum SnowTextureFactory {
                 softness: cachedSoftness
             )
         case .asset(let assetName):
-            texture = makeAssetTexture(named: assetName, diameter: diameter)
+            texture = makeAssetTexture(
+                named: assetName,
+                preset: preset,
+                diameter: diameter,
+                softness: cachedSoftness
+            )
         case .emoji(let emoji):
-            texture = makeEmojiTexture(emoji, diameter: diameter)
+            texture = makeEmojiTexture(
+                emoji,
+                preset: preset,
+                diameter: diameter,
+                softness: cachedSoftness
+            )
         }
         textureCache.store(texture, for: key)
         return texture
@@ -161,7 +162,7 @@ enum SnowTextureFactory {
             case .frostBlur:
                 drawFrostBlur(in: rect, context: context, preset: preset, softness: softness)
             case .leaf:
-                drawLeaf(in: rect, context: context, preset: preset)
+                drawLeaf(in: rect, context: context, preset: preset, softness: softness)
             }
         }
 
@@ -170,7 +171,12 @@ enum SnowTextureFactory {
         return texture
     }
 
-    private static func makeAssetTexture(named assetName: String, diameter: CGFloat) -> SKTexture {
+    private static func makeAssetTexture(
+        named assetName: String,
+        preset: SnowVisualPreset,
+        diameter: CGFloat,
+        softness: CGFloat
+    ) -> SKTexture {
         guard let assetImage = UIImage(named: assetName) else {
             assertionFailure("Missing particle texture asset named \(assetName)")
             return makeMissingAssetTexture(diameter: diameter)
@@ -182,8 +188,16 @@ enum SnowTextureFactory {
         format.scale = displayScale > 0 ? displayScale : 2
         format.opaque = false
 
-        let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { rendererContext in
+            let context = rendererContext.cgContext
+            applyTextureSoftnessShadow(
+                in: CGRect(origin: .zero, size: size),
+                context: context,
+                preset: preset,
+                softness: softness
+            )
             assetImage.draw(in: aspectFitRect(for: assetImage.size, in: CGRect(origin: .zero, size: size)))
+            context.setShadow(offset: .zero, blur: 0)
         }
 
         let texture = SKTexture(image: image)
@@ -200,14 +214,20 @@ enum SnowTextureFactory {
         )
     }
 
-    private static func makeEmojiTexture(_ emoji: String, diameter: CGFloat) -> SKTexture {
+    private static func makeEmojiTexture(
+        _ emoji: String,
+        preset: SnowVisualPreset,
+        diameter: CGFloat,
+        softness: CGFloat
+    ) -> SKTexture {
         let size = CGSize(width: diameter, height: diameter)
         let format = UIGraphicsImageRendererFormat()
         let displayScale = UITraitCollection.current.displayScale
         format.scale = displayScale > 0 ? displayScale : 2
         format.opaque = false
 
-        let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { rendererContext in
+            let context = rendererContext.cgContext
             let text = NSString(string: emoji)
             let maxTextSize = CGSize(width: diameter * 0.92, height: diameter * 0.92)
             var fontSize = diameter * 0.74
@@ -221,6 +241,12 @@ enum SnowTextureFactory {
                 textSize = text.size(withAttributes: attributes)
             }
 
+            applyTextureSoftnessShadow(
+                in: CGRect(origin: .zero, size: size),
+                context: context,
+                preset: preset,
+                softness: softness
+            )
             text.draw(
                 at: CGPoint(
                     x: (diameter - textSize.width) / 2,
@@ -228,6 +254,7 @@ enum SnowTextureFactory {
                 ),
                 withAttributes: attributes
             )
+            context.setShadow(offset: .zero, blur: 0)
         }
 
         let texture = SKTexture(image: image)
@@ -239,6 +266,29 @@ enum SnowTextureFactory {
         [
             .font: UIFont.systemFont(ofSize: fontSize)
         ]
+    }
+
+    private static func applyTextureSoftnessShadow(
+        in rect: CGRect,
+        context: CGContext,
+        preset: SnowVisualPreset,
+        softness: CGFloat
+    ) {
+        guard softness > 0 else { return }
+
+        let shadowColor: UIColor
+        switch preset {
+        case .dark:
+            shadowColor = UIColor.white.withAlphaComponent(0.14 * min(softness, 2))
+        case .light:
+            shadowColor = lightGlowColor.withAlphaComponent(0.18 * min(softness, 2))
+        }
+
+        context.setShadow(
+            offset: .zero,
+            blur: rect.width * 0.07 * (0.75 + softness * 0.35),
+            color: shadowColor.cgColor
+        )
     }
 
     private static func aspectFitRect(for sourceSize: CGSize, in rect: CGRect) -> CGRect {
@@ -555,7 +605,8 @@ enum SnowTextureFactory {
     private static func drawLeaf(
         in rect: CGRect,
         context: CGContext,
-        preset: SnowVisualPreset
+        preset: SnowVisualPreset,
+        softness: CGFloat
     ) {
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let top = CGPoint(x: center.x, y: rect.minY + rect.height * 0.12)
@@ -597,7 +648,11 @@ enum SnowTextureFactory {
         }
 
         context.saveGState()
-        context.setShadow(offset: .zero, blur: rect.width * 0.10, color: shadowColor.cgColor)
+        context.setShadow(
+            offset: .zero,
+            blur: rect.width * 0.06 * (0.8 + softness * 0.55),
+            color: shadowColor.cgColor
+        )
         context.setFillColor(strokeColor.withAlphaComponent(0.34).cgColor)
         context.addPath(leafPath.cgPath)
         context.fillPath()
