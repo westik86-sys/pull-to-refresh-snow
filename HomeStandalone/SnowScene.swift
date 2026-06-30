@@ -172,7 +172,7 @@ final class SnowScene: SKScene {
     private func apply(style: SnowParticleStyle, to emitter: SKEmitterNode) {
         emitter.name = style.name
         emitter.particleTexture = SnowTextureFactory.texture(
-            kind: style.textureKind,
+            source: style.textureSource,
             preset: configuration.preset,
             diameter: style.textureDiameter,
             softness: style.textureSoftness

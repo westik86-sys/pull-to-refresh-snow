@@ -17,9 +17,14 @@ enum SnowParticleTextureKind: Hashable {
     case leaf
 }
 
+enum ParticleTextureSource: Hashable {
+    case generated(SnowParticleTextureKind)
+    case asset(name: String)
+}
+
 struct SnowParticleStyle {
     let name: String
-    let textureKind: SnowParticleTextureKind
+    let textureSource: ParticleTextureSource
     let textureDiameter: CGFloat
     let textureSoftness: CGFloat
     let offsetY: CGFloat
@@ -55,7 +60,7 @@ extension SnowParticleStyle {
 
         return SnowParticleStyle(
             name: name,
-            textureKind: textureKind,
+            textureSource: textureSource,
             textureDiameter: textureDiameter,
             textureSoftness: textureSoftness * blur,
             offsetY: offsetY,
@@ -94,7 +99,7 @@ struct SnowThemeConfiguration: Equatable {
         layers: [
             SnowParticleStyle(
                 name: "back-frost-specks",
-                textureKind: .frostSpeck,
+                textureSource: .generated(.frostSpeck),
                 textureDiameter: 8,
                 textureSoftness: 1.25,
                 offsetY: 24,
@@ -120,7 +125,7 @@ struct SnowThemeConfiguration: Equatable {
             ),
             SnowParticleStyle(
                 name: "mid-soft-frost-dots",
-                textureKind: .frostDot,
+                textureSource: .generated(.frostDot),
                 textureDiameter: 18,
                 textureSoftness: 0.75,
                 offsetY: 40,
@@ -146,7 +151,7 @@ struct SnowThemeConfiguration: Equatable {
             ),
             SnowParticleStyle(
                 name: "front-defocused-frost",
-                textureKind: .frostBlur,
+                textureSource: .generated(.frostBlur),
                 textureDiameter: 36,
                 textureSoftness: 1.55,
                 offsetY: 52,
@@ -181,7 +186,7 @@ struct SnowThemeConfiguration: Equatable {
         layers: [
             SnowParticleStyle(
                 name: "back-frost-specks",
-                textureKind: .frostSpeck,
+                textureSource: .generated(.frostSpeck),
                 textureDiameter: 8,
                 textureSoftness: 1.25,
                 offsetY: 24,
@@ -207,7 +212,7 @@ struct SnowThemeConfiguration: Equatable {
             ),
             SnowParticleStyle(
                 name: "mid-soft-frost-dots",
-                textureKind: .frostDot,
+                textureSource: .generated(.frostDot),
                 textureDiameter: 18,
                 textureSoftness: 0.75,
                 offsetY: 40,
@@ -233,7 +238,7 @@ struct SnowThemeConfiguration: Equatable {
             ),
             SnowParticleStyle(
                 name: "front-defocused-frost",
-                textureKind: .frostBlur,
+                textureSource: .generated(.frostBlur),
                 textureDiameter: 36,
                 textureSoftness: 1.55,
                 offsetY: 52,
@@ -305,7 +310,7 @@ struct SnowThemeConfiguration: Equatable {
             layers: [
                 SnowParticleStyle(
                     name: "back-small-leaves",
-                    textureKind: .leaf,
+                    textureSource: .generated(.leaf),
                     textureDiameter: 28,
                     textureSoftness: 0.15,
                     offsetY: 26,
@@ -331,7 +336,7 @@ struct SnowThemeConfiguration: Equatable {
                 ),
                 SnowParticleStyle(
                     name: "mid-drifting-leaves",
-                    textureKind: .leaf,
+                    textureSource: .generated(.leaf),
                     textureDiameter: 34,
                     textureSoftness: 0.08,
                     offsetY: 42,
@@ -357,7 +362,7 @@ struct SnowThemeConfiguration: Equatable {
                 ),
                 SnowParticleStyle(
                     name: "front-large-leaves",
-                    textureKind: .leaf,
+                    textureSource: .generated(.leaf),
                     textureDiameter: 42,
                     textureSoftness: 0,
                     offsetY: 56,
@@ -403,7 +408,7 @@ struct SnowThemeConfiguration: Equatable {
 extension SnowParticleStyle: Equatable {
     static func == (lhs: SnowParticleStyle, rhs: SnowParticleStyle) -> Bool {
         lhs.name == rhs.name
-            && lhs.textureKind == rhs.textureKind
+            && lhs.textureSource == rhs.textureSource
             && lhs.textureDiameter == rhs.textureDiameter
             && lhs.textureSoftness == rhs.textureSoftness
             && lhs.offsetY == rhs.offsetY

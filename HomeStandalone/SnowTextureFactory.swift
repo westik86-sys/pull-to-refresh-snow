@@ -17,16 +17,26 @@ enum SnowTextureFactory {
     }
 
     static func texture(
-        kind: SnowParticleTextureKind,
+        source: ParticleTextureSource,
         preset: SnowVisualPreset,
         diameter: CGFloat,
         softness: CGFloat = 1
     ) -> SKTexture {
-        let normalizedSoftness = min(max(softness, 0), 2)
-        let softnessStep = Int((normalizedSoftness * 20).rounded())
-        let cachedSoftness = CGFloat(softnessStep) / 20
+        let softnessStep: Int
+        let cachedSoftness: CGFloat
+
+        switch source {
+        case .generated:
+            let normalizedSoftness = min(max(softness, 0), 2)
+            softnessStep = Int((normalizedSoftness * 20).rounded())
+            cachedSoftness = CGFloat(softnessStep) / 20
+        case .asset:
+            softnessStep = 0
+            cachedSoftness = 0
+        }
+
         let key = SnowTextureCache.Key(
-            kind: kind,
+            source: source,
             preset: preset,
             diameter: diameter,
             softnessStep: softnessStep
@@ -35,14 +45,34 @@ enum SnowTextureFactory {
             return cachedTexture
         }
 
-        let texture = makeTexture(
-            diameter: diameter,
-            variant: Variant(kind: kind),
-            preset: preset,
-            softness: cachedSoftness
-        )
+        let texture: SKTexture
+        switch source {
+        case .generated(let kind):
+            texture = makeTexture(
+                diameter: diameter,
+                variant: Variant(kind: kind),
+                preset: preset,
+                softness: cachedSoftness
+            )
+        case .asset(let assetName):
+            texture = makeAssetTexture(named: assetName, diameter: diameter)
+        }
         textureCache.store(texture, for: key)
         return texture
+    }
+
+    static func texture(
+        kind: SnowParticleTextureKind,
+        preset: SnowVisualPreset,
+        diameter: CGFloat,
+        softness: CGFloat = 1
+    ) -> SKTexture {
+        texture(
+            source: .generated(kind),
+            preset: preset,
+            diameter: diameter,
+            softness: softness
+        )
     }
 
     static func softDotTexture(diameter: CGFloat) -> SKTexture {
@@ -136,6 +166,53 @@ enum SnowTextureFactory {
         let texture = SKTexture(image: image)
         texture.filteringMode = .linear
         return texture
+    }
+
+    private static func makeAssetTexture(named assetName: String, diameter: CGFloat) -> SKTexture {
+        guard let assetImage = UIImage(named: assetName) else {
+            assertionFailure("Missing particle texture asset named \(assetName)")
+            return makeMissingAssetTexture(diameter: diameter)
+        }
+
+        let size = CGSize(width: diameter, height: diameter)
+        let format = UIGraphicsImageRendererFormat()
+        let displayScale = UITraitCollection.current.displayScale
+        format.scale = displayScale > 0 ? displayScale : 2
+        format.opaque = false
+
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            assetImage.draw(in: aspectFitRect(for: assetImage.size, in: CGRect(origin: .zero, size: size)))
+        }
+
+        let texture = SKTexture(image: image)
+        texture.filteringMode = .linear
+        return texture
+    }
+
+    private static func makeMissingAssetTexture(diameter: CGFloat) -> SKTexture {
+        makeTexture(
+            diameter: diameter,
+            variant: .softDot,
+            preset: .dark,
+            softness: 0
+        )
+    }
+
+    private static func aspectFitRect(for sourceSize: CGSize, in rect: CGRect) -> CGRect {
+        guard sourceSize.width > 0, sourceSize.height > 0 else { return rect }
+
+        let scale = min(rect.width / sourceSize.width, rect.height / sourceSize.height)
+        let fittedSize = CGSize(
+            width: sourceSize.width * scale,
+            height: sourceSize.height * scale
+        )
+
+        return CGRect(
+            x: rect.midX - fittedSize.width / 2,
+            y: rect.midY - fittedSize.height / 2,
+            width: fittedSize.width,
+            height: fittedSize.height
+        )
     }
 
     private static func glowAlpha(for variant: Variant, preset: SnowVisualPreset) -> CGFloat {
@@ -679,7 +756,7 @@ enum SnowTextureFactory {
 
 private final class SnowTextureCache: @unchecked Sendable {
     struct Key: Hashable {
-        let kind: SnowParticleTextureKind
+        let source: ParticleTextureSource
         let preset: SnowVisualPreset
         let diameter: CGFloat
         let softnessStep: Int
