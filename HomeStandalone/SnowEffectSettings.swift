@@ -4,11 +4,15 @@ import Security
 enum PullRefreshEffectKind: String, Codable, CaseIterable, Hashable {
     case snow
     case leaves
+    case emoji
 }
 
 struct SnowEffectSettings: Equatable, Codable {
+    static let defaultEmojiSymbol = "🍂"
+
     var isEnabled: Bool = true
     var effectKind: PullRefreshEffectKind = .snow
+    var emojiSymbol: String = Self.defaultEmojiSymbol
     var emissionDuration: Double = 2.0
     var densityMultiplier: Double = 1.0
     var speedMultiplier: Double = 1.0
@@ -23,6 +27,7 @@ struct SnowEffectSettings: Equatable, Codable {
     init(
         isEnabled: Bool = true,
         effectKind: PullRefreshEffectKind = .snow,
+        emojiSymbol: String = Self.defaultEmojiSymbol,
         emissionDuration: Double = 2.0,
         densityMultiplier: Double = 1.0,
         speedMultiplier: Double = 1.0,
@@ -34,6 +39,7 @@ struct SnowEffectSettings: Equatable, Codable {
     ) {
         self.isEnabled = isEnabled
         self.effectKind = effectKind
+        self.emojiSymbol = emojiSymbol
         self.emissionDuration = emissionDuration
         self.densityMultiplier = densityMultiplier
         self.speedMultiplier = speedMultiplier
@@ -64,10 +70,16 @@ struct SnowEffectSettings: Equatable, Codable {
         normalizedSettings.saveToKeychain()
     }
 
+    var resolvedEmojiSymbol: String {
+        let normalizedSymbol = Self.normalizedEmojiInput(emojiSymbol)
+        return normalizedSymbol.isEmpty ? Self.defaultEmojiSymbol : normalizedSymbol
+    }
+
     private var normalized: SnowEffectSettings {
         SnowEffectSettings(
             isEnabled: isEnabled,
             effectKind: effectKind,
+            emojiSymbol: Self.normalizedEmojiInput(emojiSymbol),
             emissionDuration: emissionDuration.clamped(to: 1.0...3.5),
             densityMultiplier: densityMultiplier.clamped(to: 0.25...2.5),
             speedMultiplier: speedMultiplier.clamped(to: 0.45...1.9),
@@ -85,6 +97,7 @@ struct SnowEffectSettings: Equatable, Codable {
     private enum CodingKeys: String, CodingKey {
         case isEnabled
         case effectKind
+        case emojiSymbol
         case emissionDuration
         case densityMultiplier
         case speedMultiplier
@@ -99,6 +112,7 @@ struct SnowEffectSettings: Equatable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
         effectKind = try container.decodeIfPresent(PullRefreshEffectKind.self, forKey: .effectKind) ?? .snow
+        emojiSymbol = try container.decodeIfPresent(String.self, forKey: .emojiSymbol) ?? Self.defaultEmojiSymbol
         emissionDuration = try container.decodeIfPresent(Double.self, forKey: .emissionDuration) ?? 2.0
         densityMultiplier = try container.decodeIfPresent(Double.self, forKey: .densityMultiplier) ?? 1.0
         speedMultiplier = try container.decodeIfPresent(Double.self, forKey: .speedMultiplier) ?? 1.0
@@ -116,6 +130,11 @@ struct SnowEffectSettings: Equatable, Codable {
     private static func loadFromUserDefaults() -> SnowEffectSettings? {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
         return try? JSONDecoder().decode(SnowEffectSettings.self, from: data)
+    }
+
+    private static func normalizedEmojiInput(_ symbol: String) -> String {
+        let trimmedSymbol = symbol.trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(trimmedSymbol.prefix(4))
     }
 
     private func saveToUserDefaults() {

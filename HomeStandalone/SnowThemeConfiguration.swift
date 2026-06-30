@@ -20,6 +20,7 @@ enum SnowParticleTextureKind: Hashable {
 enum ParticleTextureSource: Hashable {
     case generated(SnowParticleTextureKind)
     case asset(name: String)
+    case emoji(String)
 }
 
 struct SnowParticleStyle {
@@ -270,13 +271,16 @@ struct SnowThemeConfiguration: Equatable {
 
     static func configuration(
         for preset: SnowVisualPreset,
-        effect: PullRefreshEffectKind = .snow
+        effect: PullRefreshEffectKind = .snow,
+        emojiSymbol: String = SnowEffectSettings.defaultEmojiSymbol
     ) -> SnowThemeConfiguration {
         switch effect {
         case .snow:
             snowConfiguration(for: preset)
         case .leaves:
             leavesConfiguration(for: preset)
+        case .emoji:
+            emojiConfiguration(for: preset, emojiSymbol: emojiSymbol)
         }
     }
 
@@ -390,6 +394,98 @@ struct SnowThemeConfiguration: Equatable {
             turbulenceSmoothnessRange: 0.42...0.70,
             turbulenceAnimationSpeedRange: 0.18...0.34,
             turbulenceStrengthRange: 0.20...0.38
+        )
+    }
+
+    private static func emojiConfiguration(
+        for preset: SnowVisualPreset,
+        emojiSymbol: String
+    ) -> SnowThemeConfiguration {
+        SnowThemeConfiguration(
+            preset: preset,
+            layers: [
+                SnowParticleStyle(
+                    name: "back-emoji",
+                    textureSource: .emoji(emojiSymbol),
+                    textureDiameter: 30,
+                    textureSoftness: 0,
+                    offsetY: 28,
+                    birthRate: 7,
+                    particleScale: 0.34,
+                    particleScaleRange: 0.16,
+                    particleScaleSpeedRange: -0.012...0.006,
+                    particleSpeed: 46,
+                    particleSpeedRange: 22,
+                    particleLifetime: 3.0,
+                    particleLifetimeRange: 1.0,
+                    particleAlpha: 0.62,
+                    particleAlphaRange: 0.14,
+                    particleAlphaSpeedRange: -0.08...(-0.02),
+                    particleRotationRange: CGFloat.pi * 2,
+                    particleRotationSpeedRange: -2.0...2.0,
+                    emissionAngleRange: CGFloat.pi / 3.2,
+                    xAccelerationRange: -28...32,
+                    yAccelerationRange: -10...(-4),
+                    particleColor: .white,
+                    particleColorBlendFactor: 0,
+                    particleBlendMode: .alpha
+                ),
+                SnowParticleStyle(
+                    name: "mid-emoji",
+                    textureSource: .emoji(emojiSymbol),
+                    textureDiameter: 38,
+                    textureSoftness: 0,
+                    offsetY: 44,
+                    birthRate: 5,
+                    particleScale: 0.46,
+                    particleScaleRange: 0.20,
+                    particleScaleSpeedRange: -0.010...0.006,
+                    particleSpeed: 62,
+                    particleSpeedRange: 30,
+                    particleLifetime: 2.55,
+                    particleLifetimeRange: 0.8,
+                    particleAlpha: 0.78,
+                    particleAlphaRange: 0.12,
+                    particleAlphaSpeedRange: -0.10...(-0.03),
+                    particleRotationRange: CGFloat.pi * 2,
+                    particleRotationSpeedRange: -2.8...2.8,
+                    emissionAngleRange: CGFloat.pi / 2.8,
+                    xAccelerationRange: -40...44,
+                    yAccelerationRange: -15...(-6),
+                    particleColor: .white,
+                    particleColorBlendFactor: 0,
+                    particleBlendMode: .alpha
+                ),
+                SnowParticleStyle(
+                    name: "front-emoji",
+                    textureSource: .emoji(emojiSymbol),
+                    textureDiameter: 46,
+                    textureSoftness: 0,
+                    offsetY: 58,
+                    birthRate: 2.8,
+                    particleScale: 0.56,
+                    particleScaleRange: 0.22,
+                    particleScaleSpeedRange: -0.010...0.006,
+                    particleSpeed: 78,
+                    particleSpeedRange: 34,
+                    particleLifetime: 2.1,
+                    particleLifetimeRange: 0.65,
+                    particleAlpha: 0.86,
+                    particleAlphaRange: 0.10,
+                    particleAlphaSpeedRange: -0.12...(-0.04),
+                    particleRotationRange: CGFloat.pi * 2,
+                    particleRotationSpeedRange: -3.4...3.4,
+                    emissionAngleRange: CGFloat.pi / 2.6,
+                    xAccelerationRange: -48...52,
+                    yAccelerationRange: -18...(-8),
+                    particleColor: .white,
+                    particleColorBlendFactor: 0,
+                    particleBlendMode: .alpha
+                )
+            ],
+            turbulenceSmoothnessRange: 0.42...0.70,
+            turbulenceAnimationSpeedRange: 0.18...0.34,
+            turbulenceStrengthRange: 0.18...0.34
         )
     }
 

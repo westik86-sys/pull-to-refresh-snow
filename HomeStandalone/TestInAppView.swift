@@ -5497,8 +5497,26 @@ private struct SnowSettingsSheet: View {
                             Picker("Тип эффекта", selection: $snowSettings.effectKind) {
                                 Text("Снег").tag(PullRefreshEffectKind.snow)
                                 Text("Листья").tag(PullRefreshEffectKind.leaves)
+                                Text("Эмоджи").tag(PullRefreshEffectKind.emoji)
                             }
                             .pickerStyle(.segmented)
+                        }
+
+                        if snowSettings.effectKind == .emoji {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Emoji")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.secondary)
+
+                                TextField(
+                                    "Введите emoji",
+                                    text: $snowSettings.emojiSymbol
+                                )
+                                .textFieldStyle(.roundedBorder)
+                                .font(.system(size: 24))
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                            }
                         }
 
                         slider(

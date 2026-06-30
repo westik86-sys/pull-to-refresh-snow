@@ -30,7 +30,7 @@ enum SnowTextureFactory {
             let normalizedSoftness = min(max(softness, 0), 2)
             softnessStep = Int((normalizedSoftness * 20).rounded())
             cachedSoftness = CGFloat(softnessStep) / 20
-        case .asset:
+        case .asset(_), .emoji(_):
             softnessStep = 0
             cachedSoftness = 0
         }
@@ -56,6 +56,8 @@ enum SnowTextureFactory {
             )
         case .asset(let assetName):
             texture = makeAssetTexture(named: assetName, diameter: diameter)
+        case .emoji(let emoji):
+            texture = makeEmojiTexture(emoji, diameter: diameter)
         }
         textureCache.store(texture, for: key)
         return texture
@@ -196,6 +198,47 @@ enum SnowTextureFactory {
             preset: .dark,
             softness: 0
         )
+    }
+
+    private static func makeEmojiTexture(_ emoji: String, diameter: CGFloat) -> SKTexture {
+        let size = CGSize(width: diameter, height: diameter)
+        let format = UIGraphicsImageRendererFormat()
+        let displayScale = UITraitCollection.current.displayScale
+        format.scale = displayScale > 0 ? displayScale : 2
+        format.opaque = false
+
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            let text = NSString(string: emoji)
+            let maxTextSize = CGSize(width: diameter * 0.92, height: diameter * 0.92)
+            var fontSize = diameter * 0.74
+            var attributes = emojiAttributes(fontSize: fontSize)
+            var textSize = text.size(withAttributes: attributes)
+
+            while (textSize.width > maxTextSize.width || textSize.height > maxTextSize.height)
+                && fontSize > diameter * 0.22 {
+                fontSize *= 0.92
+                attributes = emojiAttributes(fontSize: fontSize)
+                textSize = text.size(withAttributes: attributes)
+            }
+
+            text.draw(
+                at: CGPoint(
+                    x: (diameter - textSize.width) / 2,
+                    y: (diameter - textSize.height) / 2
+                ),
+                withAttributes: attributes
+            )
+        }
+
+        let texture = SKTexture(image: image)
+        texture.filteringMode = .linear
+        return texture
+    }
+
+    private static func emojiAttributes(fontSize: CGFloat) -> [NSAttributedString.Key: Any] {
+        [
+            .font: UIFont.systemFont(ofSize: fontSize)
+        ]
     }
 
     private static func aspectFitRect(for sourceSize: CGSize, in rect: CGRect) -> CGRect {
