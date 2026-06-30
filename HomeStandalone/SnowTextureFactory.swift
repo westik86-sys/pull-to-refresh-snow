@@ -279,9 +279,9 @@ enum SnowTextureFactory {
 
         let image = UIGraphicsImageRenderer(size: size, format: format).image { rendererContext in
             let context = rendererContext.cgContext
-            let text = NSString(string: emoji)
-            let maxTextSize = CGSize(width: diameter * 0.92, height: diameter * 0.92)
-            var fontSize = diameter * 0.74
+            let text = NSString(string: templateEmojiSymbol(emoji))
+            let maxTextSize = CGSize(width: diameter * 0.96, height: diameter * 0.96)
+            var fontSize = diameter * 0.82
             var attributes = emojiAttributes(fontSize: fontSize, foregroundColor: .black)
             var textSize = text.size(withAttributes: attributes)
 
@@ -298,11 +298,10 @@ enum SnowTextureFactory {
                 preset: preset,
                 softness: softness
             )
-            text.draw(
-                at: CGPoint(
-                    x: (diameter - textSize.width) / 2,
-                    y: (diameter - textSize.height) / 2
-                ),
+            drawTemplateEmojiMask(
+                text,
+                textSize: textSize,
+                diameter: diameter,
                 withAttributes: attributes
             )
             context.setShadow(offset: .zero, blur: 0)
@@ -314,6 +313,37 @@ enum SnowTextureFactory {
         let texture = SKTexture(image: image)
         texture.filteringMode = .linear
         return texture
+    }
+
+    private static func drawTemplateEmojiMask(
+        _ text: NSString,
+        textSize: CGSize,
+        diameter: CGFloat,
+        withAttributes attributes: [NSAttributedString.Key: Any]
+    ) {
+        let origin = CGPoint(
+            x: (diameter - textSize.width) / 2,
+            y: (diameter - textSize.height) / 2
+        )
+        let strokeOffset = max(0.65, diameter * 0.018)
+        let offsets = [
+            CGPoint.zero,
+            CGPoint(x: -strokeOffset, y: 0),
+            CGPoint(x: strokeOffset, y: 0),
+            CGPoint(x: 0, y: -strokeOffset),
+            CGPoint(x: 0, y: strokeOffset),
+            CGPoint(x: -strokeOffset * 0.7, y: -strokeOffset * 0.7),
+            CGPoint(x: strokeOffset * 0.7, y: -strokeOffset * 0.7),
+            CGPoint(x: -strokeOffset * 0.7, y: strokeOffset * 0.7),
+            CGPoint(x: strokeOffset * 0.7, y: strokeOffset * 0.7)
+        ]
+
+        for offset in offsets {
+            text.draw(
+                at: CGPoint(x: origin.x + offset.x, y: origin.y + offset.y),
+                withAttributes: attributes
+            )
+        }
     }
 
     private static func emojiAttributes(fontSize: CGFloat) -> [NSAttributedString.Key: Any] {
@@ -337,6 +367,13 @@ enum SnowTextureFactory {
         case .light:
             templateEmojiLightColor
         }
+    }
+
+    private static func templateEmojiSymbol(_ emoji: String) -> String {
+        let scalars = emoji.unicodeScalars.filter {
+            $0.value != 0xFE0E && $0.value != 0xFE0F
+        }
+        return scalars.isEmpty ? emoji : String(String.UnicodeScalarView(scalars))
     }
 
     private static func applyTextureSoftnessShadow(

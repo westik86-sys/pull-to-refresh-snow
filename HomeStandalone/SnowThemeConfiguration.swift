@@ -479,7 +479,7 @@ struct SnowThemeConfiguration: Equatable {
                     particleScaleRange: 0.14,
                     particleSpeed: 60,
                     particleSpeedRange: 24,
-                    particleAlpha: 0.28,
+                    particleAlpha: 0.48,
                     particleAlphaRange: 0.08,
                     particleRotationSpeedRange: -4.0...4.0
                 ),
@@ -492,7 +492,7 @@ struct SnowThemeConfiguration: Equatable {
                     particleScaleRange: 0.18,
                     particleSpeed: 98,
                     particleSpeedRange: 44,
-                    particleAlpha: 0.62,
+                    particleAlpha: 0.82,
                     particleAlphaRange: 0.14,
                     particleRotationSpeedRange: -6.0...6.0
                 ),
@@ -505,7 +505,7 @@ struct SnowThemeConfiguration: Equatable {
                     particleScaleRange: 0.22,
                     particleSpeed: 152,
                     particleSpeedRange: 48,
-                    particleAlpha: 0.46,
+                    particleAlpha: 0.99,
                     particleAlphaRange: 0.14,
                     particleRotationSpeedRange: -5.0...5.0
                 )
