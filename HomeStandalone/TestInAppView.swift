@@ -5573,12 +5573,14 @@ private struct SnowSettingsSheet: View {
                             valueText: "\(Int((snowSettings.scaleMultiplier * 100).rounded()))%"
                         )
 
-                        slider(
-                            title: "Размытие",
-                            value: $snowSettings.blurMultiplier,
-                            range: 0...2,
-                            valueText: "\(Int((snowSettings.blurMultiplier * 100).rounded()))%"
-                        )
+                        if snowSettings.effectKind != .emoji {
+                            slider(
+                                title: "Размытие",
+                                value: $snowSettings.blurMultiplier,
+                                range: 0...2,
+                                valueText: "\(Int((snowSettings.blurMultiplier * 100).rounded()))%"
+                            )
+                        }
 
                         slider(
                             title: "Прозрачность",

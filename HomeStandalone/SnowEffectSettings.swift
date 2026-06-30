@@ -36,6 +36,7 @@ struct SnowEffectSettings: Equatable, Codable {
     static let defaultEmojiSymbol = "🍂"
     static let defaultConfettiEmojiSymbol = "🎉"
     static let maxEmojiSymbols = 6
+    static let defaultEmojiSpin = 0.35
 
     private struct PresetSettings: Equatable, Codable {
         var emojiSymbol: String = SnowEffectSettings.defaultEmojiSymbol
@@ -47,7 +48,7 @@ struct SnowEffectSettings: Equatable, Codable {
         var turbulenceMultiplier: Double = 1.0
         var overlayHeightPercent: Double = 25.0
         var blurMultiplier: Double = 1.0
-        var emojiSpin: Double = 1.0
+        var emojiSpin: Double = SnowEffectSettings.defaultEmojiSpin
         var confettiParticleMode: ConfettiParticleMode = .confetti
         var confettiCustomShape: ConfettiCustomShape = .star
         var confettiWind: Double = 0.18
@@ -67,7 +68,7 @@ struct SnowEffectSettings: Equatable, Codable {
             turbulenceMultiplier: Double = 1.0,
             overlayHeightPercent: Double = 25.0,
             blurMultiplier: Double = 1.0,
-            emojiSpin: Double = 1.0,
+            emojiSpin: Double = SnowEffectSettings.defaultEmojiSpin,
             confettiParticleMode: ConfettiParticleMode = .confetti,
             confettiCustomShape: ConfettiCustomShape = .star,
             confettiWind: Double = 0.18,
@@ -140,7 +141,7 @@ struct SnowEffectSettings: Equatable, Codable {
             turbulenceMultiplier = try container.decodeIfPresent(Double.self, forKey: .turbulenceMultiplier) ?? 1.0
             overlayHeightPercent = try container.decodeIfPresent(Double.self, forKey: .overlayHeightPercent) ?? 25.0
             blurMultiplier = try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
-            emojiSpin = try container.decodeIfPresent(Double.self, forKey: .emojiSpin) ?? 1.0
+            emojiSpin = try container.decodeIfPresent(Double.self, forKey: .emojiSpin) ?? SnowEffectSettings.defaultEmojiSpin
             confettiParticleMode = try container.decodeIfPresent(ConfettiParticleMode.self, forKey: .confettiParticleMode) ?? .confetti
             confettiCustomShape = try container.decodeIfPresent(ConfettiCustomShape.self, forKey: .confettiCustomShape) ?? .star
             confettiWind = try container.decodeIfPresent(Double.self, forKey: .confettiWind) ?? 0.18

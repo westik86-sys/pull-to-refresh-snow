@@ -56,6 +56,13 @@ extension SnowParticleStyle {
         textureDiameter: CGFloat,
         textureSoftness: CGFloat? = nil,
         birthRate: CGFloat? = nil,
+        particleScale: CGFloat? = nil,
+        particleScaleRange: CGFloat? = nil,
+        particleSpeed: CGFloat? = nil,
+        particleSpeedRange: CGFloat? = nil,
+        particleAlpha: CGFloat? = nil,
+        particleAlphaRange: CGFloat? = nil,
+        particleRotationSpeedRange: ClosedRange<CGFloat>? = nil,
         particleColor: UIColor? = nil,
         particleColorBlendFactor: CGFloat? = nil
     ) -> SnowParticleStyle {
@@ -66,18 +73,18 @@ extension SnowParticleStyle {
             textureSoftness: textureSoftness ?? self.textureSoftness,
             offsetY: offsetY,
             birthRate: birthRate ?? self.birthRate,
-            particleScale: particleScale,
-            particleScaleRange: particleScaleRange,
+            particleScale: particleScale ?? self.particleScale,
+            particleScaleRange: particleScaleRange ?? self.particleScaleRange,
             particleScaleSpeedRange: particleScaleSpeedRange,
-            particleSpeed: particleSpeed,
-            particleSpeedRange: particleSpeedRange,
+            particleSpeed: particleSpeed ?? self.particleSpeed,
+            particleSpeedRange: particleSpeedRange ?? self.particleSpeedRange,
             particleLifetime: particleLifetime,
             particleLifetimeRange: particleLifetimeRange,
-            particleAlpha: particleAlpha,
-            particleAlphaRange: particleAlphaRange,
+            particleAlpha: particleAlpha ?? self.particleAlpha,
+            particleAlphaRange: particleAlphaRange ?? self.particleAlphaRange,
             particleAlphaSpeedRange: particleAlphaSpeedRange,
             particleRotationRange: particleRotationRange,
-            particleRotationSpeedRange: particleRotationSpeedRange,
+            particleRotationSpeedRange: particleRotationSpeedRange ?? self.particleRotationSpeedRange,
             emissionAngleRange: emissionAngleRange,
             xAccelerationRange: xAccelerationRange,
             yAccelerationRange: yAccelerationRange,
@@ -93,7 +100,7 @@ extension SnowParticleStyle {
         let scale = CGFloat(settings.scaleMultiplier)
         let alpha = CGFloat(settings.alphaMultiplier)
         let lifetimeScale = CGFloat(max(settings.overlayHeightPercent, 25) / 25)
-        let blur = CGFloat(settings.blurMultiplier)
+        let blur = settings.effectKind == .emoji ? 1 : CGFloat(settings.blurMultiplier)
         let spin = settings.effectKind == .emoji ? CGFloat(settings.emojiSpin) : 1
 
         return SnowParticleStyle(
@@ -123,6 +130,20 @@ extension SnowParticleStyle {
             particleBlendMode: particleBlendMode
         )
     }
+}
+
+private struct EmojiLayerTuning {
+    let name: String
+    let textureDiameter: CGFloat
+    let textureSoftness: CGFloat
+    let birthRate: CGFloat
+    let particleScale: CGFloat
+    let particleScaleRange: CGFloat
+    let particleSpeed: CGFloat
+    let particleSpeedRange: CGFloat
+    let particleAlpha: CGFloat
+    let particleAlphaRange: CGFloat
+    let particleRotationSpeedRange: ClosedRange<CGFloat>
 }
 
 struct SnowThemeConfiguration: Equatable {
@@ -337,18 +358,66 @@ struct SnowThemeConfiguration: Equatable {
         let baseConfiguration = snowConfiguration(for: preset)
         let symbols = emojiSymbols.isEmpty ? [SnowEffectSettings.defaultEmojiSymbol] : emojiSymbols
         let densityShare = CGFloat(symbols.count)
-        let layerNames = ["back-emoji", "mid-emoji", "front-emoji"]
-        let textureDiameters: [CGFloat] = [30, 38, 46]
+        let layerTunings: [EmojiLayerTuning] = [
+            EmojiLayerTuning(
+                name: "back-emoji",
+                textureDiameter: 44,
+                textureSoftness: 0.35,
+                birthRate: 22,
+                particleScale: 0.16,
+                particleScaleRange: 0.05,
+                particleSpeed: 56,
+                particleSpeedRange: 18,
+                particleAlpha: 0.18,
+                particleAlphaRange: 0.06,
+                particleRotationSpeedRange: -0.28...0.28
+            ),
+            EmojiLayerTuning(
+                name: "mid-emoji",
+                textureDiameter: 42,
+                textureSoftness: 0.45,
+                birthRate: 16,
+                particleScale: 0.38,
+                particleScaleRange: 0.10,
+                particleSpeed: 108,
+                particleSpeedRange: 34,
+                particleAlpha: 0.48,
+                particleAlphaRange: 0.12,
+                particleRotationSpeedRange: -0.42...0.42
+            ),
+            EmojiLayerTuning(
+                name: "front-emoji",
+                textureDiameter: 52,
+                textureSoftness: 0.75,
+                birthRate: 3.5,
+                particleScale: 0.55,
+                particleScaleRange: 0.14,
+                particleSpeed: 172,
+                particleSpeedRange: 48,
+                particleAlpha: 0.32,
+                particleAlphaRange: 0.12,
+                particleRotationSpeedRange: -0.32...0.32
+            )
+        ]
 
         let layers = baseConfiguration.layers.enumerated().flatMap { layerIndex, baseLayer in
-            let visualIndex = min(layerIndex, textureDiameters.count - 1)
+            let visualIndex = min(layerIndex, layerTunings.count - 1)
+            let tuning = layerTunings[visualIndex]
 
             return symbols.enumerated().map { symbolIndex, emojiSymbol in
                 baseLayer.replacingVisuals(
-                    name: "\(layerNames[visualIndex])-\(symbolIndex)",
+                    name: "\(tuning.name)-\(symbolIndex)",
                     textureSource: .emoji(emojiSymbol),
-                    textureDiameter: textureDiameters[visualIndex],
-                    birthRate: baseLayer.birthRate / densityShare,
+                    textureDiameter: tuning.textureDiameter,
+                    textureSoftness: tuning.textureSoftness,
+                    birthRate: tuning.birthRate / densityShare,
+                    particleScale: tuning.particleScale,
+                    particleScaleRange: tuning.particleScaleRange,
+                    particleSpeed: tuning.particleSpeed,
+                    particleSpeedRange: tuning.particleSpeedRange,
+                    particleAlpha: tuning.particleAlpha,
+                    particleAlphaRange: tuning.particleAlphaRange,
+                    particleRotationSpeedRange: tuning.particleRotationSpeedRange,
                     particleColorBlendFactor: 0
                 )
             }
