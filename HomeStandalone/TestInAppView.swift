@@ -5651,6 +5651,33 @@ private struct SnowSettingsSheet: View {
                     .autocorrectionDisabled()
                 }
             }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Движение")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+
+                slider(
+                    title: "Wind",
+                    value: $snowSettings.confettiWind,
+                    range: -1.0...1.0,
+                    valueText: String(format: "%+.2f", snowSettings.confettiWind)
+                )
+
+                slider(
+                    title: "Gravity",
+                    value: $snowSettings.confettiGravity,
+                    range: 0.4...1.8,
+                    valueText: String(format: "%.2fx", snowSettings.confettiGravity)
+                )
+
+                slider(
+                    title: "Spin",
+                    value: $snowSettings.confettiSpin,
+                    range: 0.2...2.6,
+                    valueText: String(format: "%.2fx", snowSettings.confettiSpin)
+                )
+            }
         }
     }
 

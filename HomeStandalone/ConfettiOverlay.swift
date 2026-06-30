@@ -88,14 +88,18 @@ struct ConfettiOverlay: View {
         let alpha = CGFloat(settings.alphaMultiplier)
         let turbulence = CGFloat(settings.turbulenceMultiplier)
         let sparkle = CGFloat(settings.blurMultiplier)
+        let wind = CGFloat(settings.confettiWind)
+        let gravity = CGFloat(settings.confettiGravity)
+        let spin = CGFloat(settings.confettiSpin)
 
         let pieceCount = max(24, Int((54 + density * 86).rounded()))
         let emissionDuration = CGFloat(max(settings.emissionDuration, 0.1))
+        let fallSpeed = max(speed * gravity, 0.2)
 
         for index in 0..<pieceCount {
             let seed = Double(index + 1)
             let delay = confettiHash(seed * 7.9) * emissionDuration
-            let lifetime = (1.55 + confettiHash(seed * 5.7) * 1.75) / max(speed, 0.2)
+            let lifetime = (1.55 + confettiHash(seed * 5.7) * 1.75) / fallSpeed
             let age = CGFloat(elapsed) - delay
             guard age >= 0, age <= lifetime else { continue }
 
@@ -103,14 +107,15 @@ struct ConfettiOverlay: View {
             let depth = confettiHash(seed * 3.1)
             let easedFall = pow(progress, 0.78)
             let baseX = confettiHash(seed * 11.3) * size.width
-            let sway = sin(progress * .pi * 2 * (1 + confettiHash(seed * 13.1) * 2.4) + CGFloat(seed)) * size.width * 0.045
-            let windOffset = (turbulence - 0.8) * size.width * (progress - 0.18) * (0.08 + depth * 0.12)
+            let swayAmplitude = size.width * 0.045 * turbulence
+            let sway = sin(progress * .pi * 2 * (1 + confettiHash(seed * 13.1) * 2.4) + CGFloat(seed)) * swayAmplitude
+            let windOffset = wind * size.width * (progress - 0.18) * (0.18 + depth * 0.26)
             let x = baseX + sway + windOffset
-            let y = -size.height * 0.18 + easedFall * size.height * 1.32
+            let y = -size.height * 0.18 + easedFall * size.height * (1.18 + gravity * 0.14)
             let fadeIn = min(progress / 0.08, 1)
             let fadeOut = min((1 - progress) / 0.16, 1)
             let pieceAlpha = min(fadeIn, fadeOut) * (0.44 + depth * 0.56) * min(max(alpha, 0), 1.4)
-            let rotation = CGFloat(elapsed) * speed * (2.2 + confettiHash(seed * 23.5) * 8.0) + CGFloat(seed)
+            let rotation = CGFloat(elapsed) * speed * spin * (2.2 + confettiHash(seed * 23.5) * 8.0) + CGFloat(seed)
 
             renderConfettiPiece(
                 index: index,

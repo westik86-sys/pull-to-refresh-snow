@@ -49,6 +49,9 @@ struct SnowEffectSettings: Equatable, Codable {
         var blurMultiplier: Double = 1.0
         var confettiParticleMode: ConfettiParticleMode = .confetti
         var confettiCustomShape: ConfettiCustomShape = .star
+        var confettiWind: Double = 0.18
+        var confettiGravity: Double = 1.0
+        var confettiSpin: Double = 1.0
 
         static let `default` = PresetSettings()
         static let confettiDefault = PresetSettings(emojiSymbol: SnowEffectSettings.defaultConfettiEmojiSymbol)
@@ -64,7 +67,10 @@ struct SnowEffectSettings: Equatable, Codable {
             overlayHeightPercent: Double = 25.0,
             blurMultiplier: Double = 1.0,
             confettiParticleMode: ConfettiParticleMode = .confetti,
-            confettiCustomShape: ConfettiCustomShape = .star
+            confettiCustomShape: ConfettiCustomShape = .star,
+            confettiWind: Double = 0.18,
+            confettiGravity: Double = 1.0,
+            confettiSpin: Double = 1.0
         ) {
             self.emojiSymbol = emojiSymbol
             self.emissionDuration = emissionDuration
@@ -77,6 +83,9 @@ struct SnowEffectSettings: Equatable, Codable {
             self.blurMultiplier = blurMultiplier
             self.confettiParticleMode = confettiParticleMode
             self.confettiCustomShape = confettiCustomShape
+            self.confettiWind = confettiWind
+            self.confettiGravity = confettiGravity
+            self.confettiSpin = confettiSpin
         }
 
         var normalized: PresetSettings {
@@ -91,7 +100,10 @@ struct SnowEffectSettings: Equatable, Codable {
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
                 blurMultiplier: blurMultiplier.clamped(to: 0...2),
                 confettiParticleMode: confettiParticleMode,
-                confettiCustomShape: confettiCustomShape
+                confettiCustomShape: confettiCustomShape,
+                confettiWind: confettiWind.clamped(to: -1.0...1.0),
+                confettiGravity: confettiGravity.clamped(to: 0.4...1.8),
+                confettiSpin: confettiSpin.clamped(to: 0.2...2.6)
             )
         }
 
@@ -107,6 +119,9 @@ struct SnowEffectSettings: Equatable, Codable {
             case blurMultiplier
             case confettiParticleMode
             case confettiCustomShape
+            case confettiWind
+            case confettiGravity
+            case confettiSpin
         }
 
         init(from decoder: Decoder) throws {
@@ -122,6 +137,9 @@ struct SnowEffectSettings: Equatable, Codable {
             blurMultiplier = try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
             confettiParticleMode = try container.decodeIfPresent(ConfettiParticleMode.self, forKey: .confettiParticleMode) ?? .confetti
             confettiCustomShape = try container.decodeIfPresent(ConfettiCustomShape.self, forKey: .confettiCustomShape) ?? .star
+            confettiWind = try container.decodeIfPresent(Double.self, forKey: .confettiWind) ?? 0.18
+            confettiGravity = try container.decodeIfPresent(Double.self, forKey: .confettiGravity) ?? 1.0
+            confettiSpin = try container.decodeIfPresent(Double.self, forKey: .confettiSpin) ?? 1.0
         }
 
         func encode(to encoder: Encoder) throws {
@@ -137,6 +155,9 @@ struct SnowEffectSettings: Equatable, Codable {
             try container.encode(blurMultiplier, forKey: .blurMultiplier)
             try container.encode(confettiParticleMode, forKey: .confettiParticleMode)
             try container.encode(confettiCustomShape, forKey: .confettiCustomShape)
+            try container.encode(confettiWind, forKey: .confettiWind)
+            try container.encode(confettiGravity, forKey: .confettiGravity)
+            try container.encode(confettiSpin, forKey: .confettiSpin)
         }
     }
 
@@ -244,6 +265,21 @@ struct SnowEffectSettings: Equatable, Codable {
     var confettiCustomShape: ConfettiCustomShape {
         get { preset(for: effectKind).confettiCustomShape }
         set { updatePreset(for: effectKind) { $0.confettiCustomShape = newValue } }
+    }
+
+    var confettiWind: Double {
+        get { preset(for: effectKind).confettiWind }
+        set { updatePreset(for: effectKind) { $0.confettiWind = newValue } }
+    }
+
+    var confettiGravity: Double {
+        get { preset(for: effectKind).confettiGravity }
+        set { updatePreset(for: effectKind) { $0.confettiGravity = newValue } }
+    }
+
+    var confettiSpin: Double {
+        get { preset(for: effectKind).confettiSpin }
+        set { updatePreset(for: effectKind) { $0.confettiSpin = newValue } }
     }
 
     static var persisted: SnowEffectSettings {
