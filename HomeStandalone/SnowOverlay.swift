@@ -77,7 +77,10 @@ struct SnowOverlay: View {
 
     private var currentConfiguration: SnowThemeConfiguration {
         SnowThemeConfiguration
-            .configuration(for: colorScheme == .dark ? .dark : .light)
+            .configuration(
+                for: colorScheme == .dark ? .dark : .light,
+                effect: settings.effectKind
+            )
             .applying(settings)
     }
 

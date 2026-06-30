@@ -1,8 +1,14 @@
 import Foundation
 import Security
 
+enum PullRefreshEffectKind: String, Codable, CaseIterable, Hashable {
+    case snow
+    case leaves
+}
+
 struct SnowEffectSettings: Equatable, Codable {
     var isEnabled: Bool = true
+    var effectKind: PullRefreshEffectKind = .snow
     var emissionDuration: Double = 2.0
     var densityMultiplier: Double = 1.0
     var speedMultiplier: Double = 1.0
@@ -16,6 +22,7 @@ struct SnowEffectSettings: Equatable, Codable {
 
     init(
         isEnabled: Bool = true,
+        effectKind: PullRefreshEffectKind = .snow,
         emissionDuration: Double = 2.0,
         densityMultiplier: Double = 1.0,
         speedMultiplier: Double = 1.0,
@@ -26,6 +33,7 @@ struct SnowEffectSettings: Equatable, Codable {
         blurMultiplier: Double = 1.0
     ) {
         self.isEnabled = isEnabled
+        self.effectKind = effectKind
         self.emissionDuration = emissionDuration
         self.densityMultiplier = densityMultiplier
         self.speedMultiplier = speedMultiplier
@@ -59,6 +67,7 @@ struct SnowEffectSettings: Equatable, Codable {
     private var normalized: SnowEffectSettings {
         SnowEffectSettings(
             isEnabled: isEnabled,
+            effectKind: effectKind,
             emissionDuration: emissionDuration.clamped(to: 1.0...3.5),
             densityMultiplier: densityMultiplier.clamped(to: 0.25...2.5),
             speedMultiplier: speedMultiplier.clamped(to: 0.45...1.9),
@@ -75,6 +84,7 @@ struct SnowEffectSettings: Equatable, Codable {
 
     private enum CodingKeys: String, CodingKey {
         case isEnabled
+        case effectKind
         case emissionDuration
         case densityMultiplier
         case speedMultiplier
@@ -88,6 +98,7 @@ struct SnowEffectSettings: Equatable, Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
+        effectKind = try container.decodeIfPresent(PullRefreshEffectKind.self, forKey: .effectKind) ?? .snow
         emissionDuration = try container.decodeIfPresent(Double.self, forKey: .emissionDuration) ?? 2.0
         densityMultiplier = try container.decodeIfPresent(Double.self, forKey: .densityMultiplier) ?? 1.0
         speedMultiplier = try container.decodeIfPresent(Double.self, forKey: .speedMultiplier) ?? 1.0

@@ -5485,10 +5485,22 @@ private struct SnowSettingsSheet: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                section("Снежинки") {
+                section("Эффект refresh") {
                     Toggle("Показывать после refresh", isOn: $snowSettings.isEnabled)
 
                     VStack(alignment: .leading, spacing: 14) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Тип эффекта")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.secondary)
+
+                            Picker("Тип эффекта", selection: $snowSettings.effectKind) {
+                                Text("Снег").tag(PullRefreshEffectKind.snow)
+                                Text("Листья").tag(PullRefreshEffectKind.leaves)
+                            }
+                            .pickerStyle(.segmented)
+                        }
+
                         slider(
                             title: "Длительность эмиссии",
                             value: $snowSettings.emissionDuration,
@@ -5551,7 +5563,7 @@ private struct SnowSettingsSheet: View {
                     Button {
                         snowSettings = .default
                     } label: {
-                        Label("Сбросить настройки снега", systemImage: "arrow.counterclockwise")
+                        Label("Сбросить настройки эффекта", systemImage: "arrow.counterclockwise")
                             .font(.system(size: 15, weight: .medium))
                     }
                     .buttonStyle(.bordered)

@@ -65,6 +65,7 @@ enum SnowTextureFactory {
         case frostSpeck
         case frostDot
         case frostBlur
+        case leaf
 
         init(kind: SnowParticleTextureKind) {
             switch kind {
@@ -82,6 +83,8 @@ enum SnowTextureFactory {
                 self = .frostDot
             case .frostBlur:
                 self = .frostBlur
+            case .leaf:
+                self = .leaf
             }
         }
     }
@@ -125,6 +128,8 @@ enum SnowTextureFactory {
                 drawFrostDot(in: rect, context: context, preset: preset, softness: softness)
             case .frostBlur:
                 drawFrostBlur(in: rect, context: context, preset: preset, softness: softness)
+            case .leaf:
+                drawLeaf(in: rect, context: context, preset: preset)
             }
         }
 
@@ -143,6 +148,8 @@ enum SnowTextureFactory {
             0.0
         case (.frostDot, .dark):
             0.12
+        case (.leaf, .dark):
+            0.0
         case (_, .dark):
             0.36
         case (.softFlake, .light):
@@ -155,6 +162,8 @@ enum SnowTextureFactory {
             0.0
         case (.frostDot, .light):
             0.12
+        case (.leaf, .light):
+            0.0
         case (_, .light):
             0.28
         }
@@ -421,6 +430,110 @@ enum SnowTextureFactory {
         context.setFillColor(lightFillColor.withAlphaComponent(0.88).cgColor)
         context.addPath(path.cgPath)
         context.fillPath()
+    }
+
+    private static func drawLeaf(
+        in rect: CGRect,
+        context: CGContext,
+        preset: SnowVisualPreset
+    ) {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let top = CGPoint(x: center.x, y: rect.minY + rect.height * 0.12)
+        let bottom = CGPoint(x: center.x, y: rect.maxY - rect.height * 0.12)
+        let leafPath = UIBezierPath()
+
+        leafPath.move(to: top)
+        leafPath.addCurve(
+            to: bottom,
+            controlPoint1: CGPoint(x: rect.maxX - rect.width * 0.02, y: rect.minY + rect.height * 0.28),
+            controlPoint2: CGPoint(x: rect.maxX - rect.width * 0.09, y: rect.maxY - rect.height * 0.12)
+        )
+        leafPath.addCurve(
+            to: top,
+            controlPoint1: CGPoint(x: rect.minX + rect.width * 0.10, y: rect.maxY - rect.height * 0.10),
+            controlPoint2: CGPoint(x: rect.minX + rect.width * 0.03, y: rect.minY + rect.height * 0.30)
+        )
+        leafPath.close()
+
+        let fillStartColor: UIColor
+        let fillEndColor: UIColor
+        let strokeColor: UIColor
+        let veinColor: UIColor
+        let shadowColor: UIColor
+
+        switch preset {
+        case .dark:
+            fillStartColor = UIColor(red: 174 / 255, green: 190 / 255, blue: 87 / 255, alpha: 0.92)
+            fillEndColor = UIColor(red: 104 / 255, green: 140 / 255, blue: 61 / 255, alpha: 0.92)
+            strokeColor = UIColor(red: 75 / 255, green: 102 / 255, blue: 46 / 255, alpha: 0.58)
+            veinColor = UIColor(red: 235 / 255, green: 216 / 255, blue: 143 / 255, alpha: 0.42)
+            shadowColor = UIColor.black.withAlphaComponent(0.18)
+        case .light:
+            fillStartColor = UIColor(red: 156 / 255, green: 176 / 255, blue: 78 / 255, alpha: 0.90)
+            fillEndColor = UIColor(red: 83 / 255, green: 122 / 255, blue: 55 / 255, alpha: 0.90)
+            strokeColor = UIColor(red: 52 / 255, green: 86 / 255, blue: 43 / 255, alpha: 0.50)
+            veinColor = UIColor(red: 244 / 255, green: 223 / 255, blue: 146 / 255, alpha: 0.40)
+            shadowColor = UIColor.black.withAlphaComponent(0.12)
+        }
+
+        context.saveGState()
+        context.setShadow(offset: .zero, blur: rect.width * 0.10, color: shadowColor.cgColor)
+        context.setFillColor(strokeColor.withAlphaComponent(0.34).cgColor)
+        context.addPath(leafPath.cgPath)
+        context.fillPath()
+        context.restoreGState()
+
+        context.saveGState()
+        context.addPath(leafPath.cgPath)
+        context.clip()
+
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let colors = [
+            fillStartColor.cgColor,
+            fillEndColor.cgColor
+        ] as CFArray
+        let locations: [CGFloat] = [0, 1]
+
+        if let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: locations) {
+            context.drawLinearGradient(
+                gradient,
+                start: CGPoint(x: rect.minX + rect.width * 0.22, y: rect.minY),
+                end: CGPoint(x: rect.maxX - rect.width * 0.12, y: rect.maxY),
+                options: []
+            )
+        }
+        context.restoreGState()
+
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(max(0.7, rect.width * 0.04))
+        context.addPath(leafPath.cgPath)
+        context.strokePath()
+
+        context.setStrokeColor(veinColor.cgColor)
+        context.setLineWidth(max(0.5, rect.width * 0.026))
+        context.setLineCap(.round)
+        context.move(to: CGPoint(x: center.x, y: rect.minY + rect.height * 0.17))
+        context.addCurve(
+            to: CGPoint(x: center.x, y: rect.maxY - rect.height * 0.18),
+            control1: CGPoint(x: center.x + rect.width * 0.05, y: rect.minY + rect.height * 0.36),
+            control2: CGPoint(x: center.x - rect.width * 0.04, y: rect.maxY - rect.height * 0.34)
+        )
+        context.strokePath()
+
+        let veinOffsets: [CGFloat] = [0.38, 0.52, 0.66]
+
+        for offset in veinOffsets {
+            let y = rect.minY + rect.height * offset
+            let veinLength = rect.width * (0.13 + (offset - 0.38) * 0.10)
+
+            context.move(to: CGPoint(x: center.x, y: y))
+            context.addLine(to: CGPoint(x: center.x + veinLength, y: y - rect.height * 0.075))
+            context.strokePath()
+
+            context.move(to: CGPoint(x: center.x, y: y + rect.height * 0.02))
+            context.addLine(to: CGPoint(x: center.x - veinLength * 0.82, y: y + rect.height * 0.095))
+            context.strokePath()
+        }
     }
 
     private static func drawFrostSpeck(

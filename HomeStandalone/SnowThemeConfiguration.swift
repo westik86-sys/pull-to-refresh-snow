@@ -14,6 +14,7 @@ enum SnowParticleTextureKind: Hashable {
     case frostSpeck
     case frostDot
     case frostBlur
+    case leaf
 }
 
 struct SnowParticleStyle {
@@ -262,13 +263,129 @@ struct SnowThemeConfiguration: Equatable {
         turbulenceStrengthRange: 0.14...0.28
     )
 
-    static func configuration(for preset: SnowVisualPreset) -> SnowThemeConfiguration {
+    static func configuration(
+        for preset: SnowVisualPreset,
+        effect: PullRefreshEffectKind = .snow
+    ) -> SnowThemeConfiguration {
+        switch effect {
+        case .snow:
+            snowConfiguration(for: preset)
+        case .leaves:
+            leavesConfiguration(for: preset)
+        }
+    }
+
+    private static func snowConfiguration(for preset: SnowVisualPreset) -> SnowThemeConfiguration {
         switch preset {
         case .dark:
             dark
         case .light:
             light
         }
+    }
+
+    private static func leavesConfiguration(for preset: SnowVisualPreset) -> SnowThemeConfiguration {
+        let backColor: UIColor
+        let midColor: UIColor
+        let frontColor: UIColor
+
+        switch preset {
+        case .dark:
+            backColor = UIColor(red: 95 / 255, green: 134 / 255, blue: 66 / 255, alpha: 1)
+            midColor = UIColor(red: 148 / 255, green: 174 / 255, blue: 79 / 255, alpha: 1)
+            frontColor = UIColor(red: 192 / 255, green: 151 / 255, blue: 63 / 255, alpha: 1)
+        case .light:
+            backColor = UIColor(red: 73 / 255, green: 112 / 255, blue: 54 / 255, alpha: 1)
+            midColor = UIColor(red: 124 / 255, green: 151 / 255, blue: 67 / 255, alpha: 1)
+            frontColor = UIColor(red: 174 / 255, green: 124 / 255, blue: 49 / 255, alpha: 1)
+        }
+
+        return SnowThemeConfiguration(
+            preset: preset,
+            layers: [
+                SnowParticleStyle(
+                    name: "back-small-leaves",
+                    textureKind: .leaf,
+                    textureDiameter: 28,
+                    textureSoftness: 0.15,
+                    offsetY: 26,
+                    birthRate: 8,
+                    particleScale: 0.34,
+                    particleScaleRange: 0.16,
+                    particleScaleSpeedRange: -0.018...0.006,
+                    particleSpeed: 42,
+                    particleSpeedRange: 24,
+                    particleLifetime: 3.3,
+                    particleLifetimeRange: 1.2,
+                    particleAlpha: 0.58,
+                    particleAlphaRange: 0.16,
+                    particleAlphaSpeedRange: -0.08...(-0.02),
+                    particleRotationRange: CGFloat.pi * 2,
+                    particleRotationSpeedRange: -2.4...2.4,
+                    emissionAngleRange: CGFloat.pi / 3,
+                    xAccelerationRange: -32...36,
+                    yAccelerationRange: -10...(-4),
+                    particleColor: backColor,
+                    particleColorBlendFactor: 0.42,
+                    particleBlendMode: .alpha
+                ),
+                SnowParticleStyle(
+                    name: "mid-drifting-leaves",
+                    textureKind: .leaf,
+                    textureDiameter: 34,
+                    textureSoftness: 0.08,
+                    offsetY: 42,
+                    birthRate: 6,
+                    particleScale: 0.48,
+                    particleScaleRange: 0.22,
+                    particleScaleSpeedRange: -0.014...0.008,
+                    particleSpeed: 58,
+                    particleSpeedRange: 32,
+                    particleLifetime: 2.8,
+                    particleLifetimeRange: 0.9,
+                    particleAlpha: 0.72,
+                    particleAlphaRange: 0.16,
+                    particleAlphaSpeedRange: -0.10...(-0.03),
+                    particleRotationRange: CGFloat.pi * 2,
+                    particleRotationSpeedRange: -3.2...3.2,
+                    emissionAngleRange: CGFloat.pi / 2.7,
+                    xAccelerationRange: -42...46,
+                    yAccelerationRange: -14...(-6),
+                    particleColor: midColor,
+                    particleColorBlendFactor: 0.36,
+                    particleBlendMode: .alpha
+                ),
+                SnowParticleStyle(
+                    name: "front-large-leaves",
+                    textureKind: .leaf,
+                    textureDiameter: 42,
+                    textureSoftness: 0,
+                    offsetY: 56,
+                    birthRate: 2.8,
+                    particleScale: 0.58,
+                    particleScaleRange: 0.24,
+                    particleScaleSpeedRange: -0.012...0.006,
+                    particleSpeed: 74,
+                    particleSpeedRange: 36,
+                    particleLifetime: 2.35,
+                    particleLifetimeRange: 0.8,
+                    particleAlpha: 0.80,
+                    particleAlphaRange: 0.14,
+                    particleAlphaSpeedRange: -0.12...(-0.04),
+                    particleRotationRange: CGFloat.pi * 2,
+                    particleRotationSpeedRange: -3.8...3.8,
+                    emissionAngleRange: CGFloat.pi / 2.5,
+                    xAccelerationRange: -50...54,
+                    yAccelerationRange: -18...(-8),
+                    particleColor: frontColor,
+                    particleColorBlendFactor: 0.30,
+                    particleBlendMode: .alpha
+                )
+            ],
+            turbulenceSmoothnessRange: 0.42...0.70,
+            turbulenceAnimationSpeedRange: 0.18...0.34,
+            turbulenceStrengthRange: 0.20...0.38
+        )
     }
 
     func applying(_ settings: SnowEffectSettings) -> SnowThemeConfiguration {
