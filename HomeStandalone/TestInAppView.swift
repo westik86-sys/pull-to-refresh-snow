@@ -5529,7 +5529,7 @@ private struct SnowSettingsSheet: View {
                             slider(
                                 title: "Вращение",
                                 value: $snowSettings.emojiSpin,
-                                range: 0...2.6,
+                                range: 0...1,
                                 valueText: "\(Int((snowSettings.emojiSpin * 100).rounded()))%"
                             )
                         }

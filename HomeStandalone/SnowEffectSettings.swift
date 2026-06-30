@@ -107,7 +107,7 @@ struct SnowEffectSettings: Equatable, Codable {
                 turbulenceMultiplier: turbulenceMultiplier.clamped(to: 0...1.8),
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
                 blurMultiplier: blurMultiplier.clamped(to: 0...2),
-                emojiSpin: emojiSpin.clamped(to: 0...2.6),
+                emojiSpin: emojiSpin.clamped(to: 0...1),
                 confettiParticleMode: confettiParticleMode,
                 confettiCustomShape: confettiCustomShape,
                 confettiWind: confettiWind.clamped(to: -1.0...1.0),
