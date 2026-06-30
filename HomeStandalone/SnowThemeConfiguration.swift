@@ -378,47 +378,7 @@ struct SnowThemeConfiguration: Equatable {
             EmojiRotationVariant(name: "counter-fast", speedMultiplier: -0.78),
             EmojiRotationVariant(name: "clock-fast", speedMultiplier: 1.0)
         ]
-        let layerTunings: [EmojiLayerTuning] = [
-            EmojiLayerTuning(
-                name: "back-emoji",
-                textureDiameter: 44,
-                textureSoftness: 0.35,
-                birthRate: 22,
-                particleScale: 0.24,
-                particleScaleRange: 0.14,
-                particleSpeed: 60,
-                particleSpeedRange: 24,
-                particleAlpha: 0.18,
-                particleAlphaRange: 0.06,
-                particleRotationSpeedRange: -4.0...4.0
-            ),
-            EmojiLayerTuning(
-                name: "mid-emoji",
-                textureDiameter: 42,
-                textureSoftness: 0.45,
-                birthRate: 16,
-                particleScale: 0.38,
-                particleScaleRange: 0.18,
-                particleSpeed: 98,
-                particleSpeedRange: 44,
-                particleAlpha: 0.48,
-                particleAlphaRange: 0.12,
-                particleRotationSpeedRange: -6.0...6.0
-            ),
-            EmojiLayerTuning(
-                name: "front-emoji",
-                textureDiameter: 52,
-                textureSoftness: 0.75,
-                birthRate: 3.5,
-                particleScale: 0.50,
-                particleScaleRange: 0.22,
-                particleSpeed: 152,
-                particleSpeedRange: 48,
-                particleAlpha: 0.32,
-                particleAlphaRange: 0.12,
-                particleRotationSpeedRange: -5.0...5.0
-            )
-        ]
+        let layerTunings = emojiLayerTunings(for: textureMode)
 
         let layers = baseConfiguration.layers.enumerated().flatMap { layerIndex, baseLayer in
             let visualIndex = min(layerIndex, layerTunings.count - 1)
@@ -461,6 +421,95 @@ struct SnowThemeConfiguration: Equatable {
             .emoji(emojiSymbol)
         case .template:
             .templateEmoji(emojiSymbol)
+        }
+    }
+
+    private static func emojiLayerTunings(for mode: EmojiTextureMode) -> [EmojiLayerTuning] {
+        switch mode {
+        case .color:
+            [
+                EmojiLayerTuning(
+                    name: "back-emoji",
+                    textureDiameter: 44,
+                    textureSoftness: 0.35,
+                    birthRate: 22,
+                    particleScale: 0.24,
+                    particleScaleRange: 0.14,
+                    particleSpeed: 60,
+                    particleSpeedRange: 24,
+                    particleAlpha: 0.18,
+                    particleAlphaRange: 0.06,
+                    particleRotationSpeedRange: -4.0...4.0
+                ),
+                EmojiLayerTuning(
+                    name: "mid-emoji",
+                    textureDiameter: 42,
+                    textureSoftness: 0.45,
+                    birthRate: 16,
+                    particleScale: 0.38,
+                    particleScaleRange: 0.18,
+                    particleSpeed: 98,
+                    particleSpeedRange: 44,
+                    particleAlpha: 0.48,
+                    particleAlphaRange: 0.12,
+                    particleRotationSpeedRange: -6.0...6.0
+                ),
+                EmojiLayerTuning(
+                    name: "front-emoji",
+                    textureDiameter: 52,
+                    textureSoftness: 0.75,
+                    birthRate: 3.5,
+                    particleScale: 0.50,
+                    particleScaleRange: 0.22,
+                    particleSpeed: 152,
+                    particleSpeedRange: 48,
+                    particleAlpha: 0.32,
+                    particleAlphaRange: 0.12,
+                    particleRotationSpeedRange: -5.0...5.0
+                )
+            ]
+        case .template:
+            [
+                EmojiLayerTuning(
+                    name: "back-template-emoji",
+                    textureDiameter: 44,
+                    textureSoftness: 0.35,
+                    birthRate: 22,
+                    particleScale: 0.24,
+                    particleScaleRange: 0.14,
+                    particleSpeed: 60,
+                    particleSpeedRange: 24,
+                    particleAlpha: 0.28,
+                    particleAlphaRange: 0.08,
+                    particleRotationSpeedRange: -4.0...4.0
+                ),
+                EmojiLayerTuning(
+                    name: "mid-template-emoji",
+                    textureDiameter: 42,
+                    textureSoftness: 0.45,
+                    birthRate: 16,
+                    particleScale: 0.38,
+                    particleScaleRange: 0.18,
+                    particleSpeed: 98,
+                    particleSpeedRange: 44,
+                    particleAlpha: 0.62,
+                    particleAlphaRange: 0.14,
+                    particleRotationSpeedRange: -6.0...6.0
+                ),
+                EmojiLayerTuning(
+                    name: "front-template-emoji",
+                    textureDiameter: 52,
+                    textureSoftness: 0.75,
+                    birthRate: 3.5,
+                    particleScale: 0.50,
+                    particleScaleRange: 0.22,
+                    particleSpeed: 152,
+                    particleSpeedRange: 48,
+                    particleAlpha: 0.46,
+                    particleAlphaRange: 0.14,
+                    particleRotationSpeedRange: -5.0...5.0
+                )
+            ]
         }
     }
 
