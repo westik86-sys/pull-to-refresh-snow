@@ -112,7 +112,7 @@ struct SnowEffectSettings: Equatable, Codable {
                 confettiCustomShape: confettiCustomShape,
                 confettiWind: confettiWind.clamped(to: -1.0...1.0),
                 confettiGravity: confettiGravity.clamped(to: 0.4...1.8),
-                confettiSpin: confettiSpin.clamped(to: 0.2...2.6)
+                confettiSpin: confettiSpin.clamped(to: 0...2.6)
             )
         }
 

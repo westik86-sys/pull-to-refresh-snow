@@ -5526,11 +5526,10 @@ private struct SnowSettingsSheet: View {
                                 .autocorrectionDisabled()
                             }
 
-                            slider(
+                            settingsSlider(
                                 title: "Вращение",
                                 value: $snowSettings.emojiSpin,
-                                range: 0...1,
-                                valueText: "\(Int((snowSettings.emojiSpin * 100).rounded()))%"
+                                internalRange: 0...1
                             )
                         }
 
@@ -5538,62 +5537,54 @@ private struct SnowSettingsSheet: View {
                             confettiObjectControls
                         }
 
-                        slider(
+                        settingsSlider(
                             title: "Длительность эмиссии",
                             value: $snowSettings.emissionDuration,
-                            range: 1.0...3.5,
-                            valueText: String(format: "%.1f с", snowSettings.emissionDuration)
+                            internalRange: 1.0...3.5
                         )
 
-                        slider(
+                        settingsSlider(
                             title: "Высота зоны",
                             value: $snowSettings.overlayHeightPercent,
-                            range: 0...100,
-                            valueText: "\(Int(snowSettings.overlayHeightPercent.rounded()))%"
+                            internalRange: 0...100
                         )
 
-                        slider(
+                        settingsSlider(
                             title: "Плотность",
                             value: $snowSettings.densityMultiplier,
-                            range: 0.25...2.5,
-                            valueText: "\(Int((snowSettings.densityMultiplier * 100).rounded()))%"
+                            internalRange: 0.25...2.5
                         )
 
-                        slider(
+                        settingsSlider(
                             title: "Скорость падения",
                             value: $snowSettings.speedMultiplier,
-                            range: 0.45...1.9,
-                            valueText: "\(Int((snowSettings.speedMultiplier * 100).rounded()))%"
+                            internalRange: 0.45...1.9
                         )
 
-                        slider(
+                        settingsSlider(
                             title: "Размер частиц",
                             value: $snowSettings.scaleMultiplier,
-                            range: particleScaleRange,
-                            valueText: "\(Int((snowSettings.scaleMultiplier * 100).rounded()))%"
+                            internalRange: particleScaleRange
                         )
 
                         if snowSettings.effectKind != .emoji {
-                            slider(
+                            settingsSlider(
                                 title: "Размытие",
                                 value: $snowSettings.blurMultiplier,
-                                range: 0...2,
-                                valueText: "\(Int((snowSettings.blurMultiplier * 100).rounded()))%"
+                                internalRange: 0...2
                             )
                         }
 
-                        slider(
+                        settingsSlider(
                             title: "Прозрачность",
                             value: $snowSettings.alphaMultiplier,
-                            range: 0.35...2.5,
-                            valueText: "\(Int((snowSettings.alphaMultiplier * 100).rounded()))%"
+                            internalRange: 0.35...2.5
                         )
 
-                        slider(
+                        settingsSlider(
                             title: "Турбулентность",
                             value: $snowSettings.turbulenceMultiplier,
-                            range: 0...1.8,
-                            valueText: "\(Int((snowSettings.turbulenceMultiplier * 100).rounded()))%"
+                            internalRange: 0...1.8
                         )
                     }
                     .opacity(snowSettings.isEnabled ? 1 : 0.4)
@@ -5666,25 +5657,22 @@ private struct SnowSettingsSheet: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.secondary)
 
-                slider(
+                settingsSlider(
                     title: "Wind",
                     value: $snowSettings.confettiWind,
-                    range: -1.0...1.0,
-                    valueText: String(format: "%+.2f", snowSettings.confettiWind)
+                    internalRange: -1.0...1.0
                 )
 
-                slider(
+                settingsSlider(
                     title: "Gravity",
                     value: $snowSettings.confettiGravity,
-                    range: 0.4...1.8,
-                    valueText: String(format: "%.2fx", snowSettings.confettiGravity)
+                    internalRange: 0.4...1.8
                 )
 
-                slider(
+                settingsSlider(
                     title: "Spin",
                     value: $snowSettings.confettiSpin,
-                    range: 0.2...2.6,
-                    valueText: String(format: "%.2fx", snowSettings.confettiSpin)
+                    internalRange: 0...2.6
                 )
             }
         }
@@ -5721,6 +5709,48 @@ private struct SnowSettingsSheet: View {
             }
             Slider(value: value, in: range)
         }
+    }
+
+    private func settingsSlider(
+        title: String,
+        value: Binding<Double>,
+        internalRange: ClosedRange<Double>
+    ) -> some View {
+        let normalizedValue = normalizedSliderValue(value.wrappedValue, in: internalRange)
+
+        return slider(
+            title: title,
+            value: normalizedSliderBinding(value, in: internalRange),
+            range: 0...100,
+            valueText: "\(Int(normalizedValue.rounded()))"
+        )
+    }
+
+    private func normalizedSliderBinding(
+        _ value: Binding<Double>,
+        in internalRange: ClosedRange<Double>
+    ) -> Binding<Double> {
+        Binding(
+            get: {
+                normalizedSliderValue(value.wrappedValue, in: internalRange)
+            },
+            set: { newValue in
+                value.wrappedValue = denormalizedSliderValue(newValue, in: internalRange)
+            }
+        )
+    }
+
+    private func normalizedSliderValue(_ value: Double, in internalRange: ClosedRange<Double>) -> Double {
+        let width = internalRange.upperBound - internalRange.lowerBound
+        guard width > 0 else { return 0 }
+
+        let clampedValue = min(max(value, internalRange.lowerBound), internalRange.upperBound)
+        return ((clampedValue - internalRange.lowerBound) / width) * 100
+    }
+
+    private func denormalizedSliderValue(_ value: Double, in internalRange: ClosedRange<Double>) -> Double {
+        let clampedValue = min(max(value, 0), 100)
+        return internalRange.lowerBound + (clampedValue / 100) * (internalRange.upperBound - internalRange.lowerBound)
     }
 
     private var particleScaleRange: ClosedRange<Double> {
