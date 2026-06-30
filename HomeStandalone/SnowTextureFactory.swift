@@ -8,6 +8,7 @@ enum SnowTextureFactory {
     private static let lightStrokeColor = UIColor(red: 144 / 255, green: 178 / 255, blue: 192 / 255, alpha: 0.72)
     private static let lightEdgeColor = UIColor(red: 108 / 255, green: 142 / 255, blue: 156 / 255, alpha: 0.30)
     private static let lightGlowColor = UIColor(red: 188 / 255, green: 221 / 255, blue: 234 / 255, alpha: 1)
+    private static let templateEmojiLightColor = UIColor(red: 66 / 255, green: 139 / 255, blue: 249 / 255, alpha: 1)
 
     private struct FrostBlob {
         let x: CGFloat
@@ -54,6 +55,13 @@ enum SnowTextureFactory {
             )
         case .emoji(let emoji):
             texture = makeEmojiTexture(
+                emoji,
+                preset: preset,
+                diameter: diameter,
+                softness: cachedSoftness
+            )
+        case .templateEmoji(let emoji):
+            texture = makeTemplateEmojiTexture(
                 emoji,
                 preset: preset,
                 diameter: diameter,
@@ -257,10 +265,78 @@ enum SnowTextureFactory {
         return texture
     }
 
+    private static func makeTemplateEmojiTexture(
+        _ emoji: String,
+        preset: SnowVisualPreset,
+        diameter: CGFloat,
+        softness: CGFloat
+    ) -> SKTexture {
+        let size = CGSize(width: diameter, height: diameter)
+        let format = UIGraphicsImageRendererFormat()
+        let displayScale = UITraitCollection.current.displayScale
+        format.scale = displayScale > 0 ? displayScale : 2
+        format.opaque = false
+
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { rendererContext in
+            let context = rendererContext.cgContext
+            let text = NSString(string: emoji)
+            let maxTextSize = CGSize(width: diameter * 0.92, height: diameter * 0.92)
+            var fontSize = diameter * 0.74
+            var attributes = emojiAttributes(fontSize: fontSize, foregroundColor: .black)
+            var textSize = text.size(withAttributes: attributes)
+
+            while (textSize.width > maxTextSize.width || textSize.height > maxTextSize.height)
+                && fontSize > diameter * 0.22 {
+                fontSize *= 0.92
+                attributes = emojiAttributes(fontSize: fontSize, foregroundColor: .black)
+                textSize = text.size(withAttributes: attributes)
+            }
+
+            applyTextureSoftnessShadow(
+                in: CGRect(origin: .zero, size: size),
+                context: context,
+                preset: preset,
+                softness: softness
+            )
+            text.draw(
+                at: CGPoint(
+                    x: (diameter - textSize.width) / 2,
+                    y: (diameter - textSize.height) / 2
+                ),
+                withAttributes: attributes
+            )
+            context.setShadow(offset: .zero, blur: 0)
+            context.setBlendMode(.sourceIn)
+            context.setFillColor(templateEmojiColor(for: preset).cgColor)
+            context.fill(CGRect(origin: .zero, size: size))
+        }
+
+        let texture = SKTexture(image: image)
+        texture.filteringMode = .linear
+        return texture
+    }
+
     private static func emojiAttributes(fontSize: CGFloat) -> [NSAttributedString.Key: Any] {
-        [
+        emojiAttributes(fontSize: fontSize, foregroundColor: nil)
+    }
+
+    private static func emojiAttributes(fontSize: CGFloat, foregroundColor: UIColor?) -> [NSAttributedString.Key: Any] {
+        var attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: fontSize)
         ]
+        if let foregroundColor {
+            attributes[.foregroundColor] = foregroundColor
+        }
+        return attributes
+    }
+
+    private static func templateEmojiColor(for preset: SnowVisualPreset) -> UIColor {
+        switch preset {
+        case .dark:
+            .white
+        case .light:
+            templateEmojiLightColor
+        }
     }
 
     private static func applyTextureSoftnessShadow(

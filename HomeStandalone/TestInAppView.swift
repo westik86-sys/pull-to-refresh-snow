@@ -5505,19 +5505,20 @@ private struct SnowSettingsSheet: View {
                             Picker("Тип эффекта", selection: $snowSettings.effectKind) {
                                 Text("Снег").tag(PullRefreshEffectKind.snow)
                                 Text("Emoji").tag(PullRefreshEffectKind.emoji)
+                                Text("Моно").tag(PullRefreshEffectKind.emojiTemplate)
                                 Text("Конфетти").tag(PullRefreshEffectKind.confetti)
                             }
                             .pickerStyle(.segmented)
                         }
 
-                        if snowSettings.effectKind == .emoji {
+                        if snowSettings.effectKind.usesEmojiInput {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Emoji")
+                                Text(snowSettings.effectKind == .emojiTemplate ? "Emoji Mono" : "Emoji")
                                     .font(.system(size: 13, weight: .medium))
                                     .foregroundColor(.secondary)
 
                                 TextField(
-                                    "🍂❄️✨",
+                                    snowSettings.effectKind == .emojiTemplate ? "❄️✦✳︎" : "🍂❄️✨",
                                     text: $snowSettings.emojiSymbol
                                 )
                                 .textFieldStyle(.roundedBorder)
@@ -5567,7 +5568,7 @@ private struct SnowSettingsSheet: View {
                             internalRange: particleScaleRange
                         )
 
-                        if snowSettings.effectKind != .emoji {
+                        if !snowSettings.effectKind.usesEmojiInput {
                             settingsSlider(
                                 title: "Размытие",
                                 value: $snowSettings.blurMultiplier,
@@ -5754,7 +5755,7 @@ private struct SnowSettingsSheet: View {
     }
 
     private var particleScaleRange: ClosedRange<Double> {
-        snowSettings.effectKind == .emoji ? 0.2...1.8 : 0.55...1.8
+        snowSettings.effectKind.usesEmojiInput ? 0.2...1.8 : 0.55...1.8
     }
 }
 

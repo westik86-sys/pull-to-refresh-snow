@@ -210,7 +210,10 @@ final class SnowScene: SKScene {
     }
 
     private func particleRotationSpeed(for style: SnowParticleStyle) -> CGFloat {
-        guard case .emoji = style.textureSource else {
+        switch style.textureSource {
+        case .emoji(_), .templateEmoji(_):
+            break
+        case .generated, .asset:
             return CGFloat.random(in: style.particleRotationSpeedRange)
         }
 

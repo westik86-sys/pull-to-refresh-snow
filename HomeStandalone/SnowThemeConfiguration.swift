@@ -20,6 +20,7 @@ enum ParticleTextureSource: Hashable {
     case generated(SnowParticleTextureKind)
     case asset(name: String)
     case emoji(String)
+    case templateEmoji(String)
 }
 
 struct SnowParticleStyle {
@@ -100,8 +101,8 @@ extension SnowParticleStyle {
         let scale = CGFloat(settings.scaleMultiplier)
         let alpha = CGFloat(settings.alphaMultiplier)
         let lifetimeScale = CGFloat(max(settings.overlayHeightPercent, 25) / 25)
-        let blur = settings.effectKind == .emoji ? 1 : CGFloat(settings.blurMultiplier)
-        let spin = settings.effectKind == .emoji ? CGFloat(settings.emojiSpin) : 1
+        let blur = settings.effectKind.usesEmojiInput ? 1 : CGFloat(settings.blurMultiplier)
+        let spin = settings.effectKind.usesEmojiInput ? CGFloat(settings.emojiSpin) : 1
 
         return SnowParticleStyle(
             name: name,
@@ -149,6 +150,11 @@ private struct EmojiLayerTuning {
 private struct EmojiRotationVariant {
     let name: String
     let speedMultiplier: CGFloat
+}
+
+private enum EmojiTextureMode {
+    case color
+    case template
 }
 
 struct SnowThemeConfiguration: Equatable {
@@ -341,7 +347,9 @@ struct SnowThemeConfiguration: Equatable {
         case .snow:
             snowConfiguration(for: preset)
         case .emoji:
-            emojiConfiguration(for: preset, emojiSymbols: emojiSymbols)
+            emojiConfiguration(for: preset, emojiSymbols: emojiSymbols, textureMode: .color)
+        case .emojiTemplate:
+            emojiConfiguration(for: preset, emojiSymbols: emojiSymbols, textureMode: .template)
         case .confetti:
             snowConfiguration(for: preset)
         }
@@ -358,7 +366,8 @@ struct SnowThemeConfiguration: Equatable {
 
     private static func emojiConfiguration(
         for preset: SnowVisualPreset,
-        emojiSymbols: [String]
+        emojiSymbols: [String],
+        textureMode: EmojiTextureMode
     ) -> SnowThemeConfiguration {
         let baseConfiguration = snowConfiguration(for: preset)
         let symbols = emojiSymbols.isEmpty ? [SnowEffectSettings.defaultEmojiSymbol] : emojiSymbols
@@ -377,8 +386,8 @@ struct SnowThemeConfiguration: Equatable {
                 birthRate: 22,
                 particleScale: 0.24,
                 particleScaleRange: 0.14,
-                particleSpeed: 56,
-                particleSpeedRange: 18,
+                particleSpeed: 60,
+                particleSpeedRange: 24,
                 particleAlpha: 0.18,
                 particleAlphaRange: 0.06,
                 particleRotationSpeedRange: -4.0...4.0
@@ -390,8 +399,8 @@ struct SnowThemeConfiguration: Equatable {
                 birthRate: 16,
                 particleScale: 0.38,
                 particleScaleRange: 0.18,
-                particleSpeed: 108,
-                particleSpeedRange: 34,
+                particleSpeed: 98,
+                particleSpeedRange: 44,
                 particleAlpha: 0.48,
                 particleAlphaRange: 0.12,
                 particleRotationSpeedRange: -6.0...6.0
@@ -403,7 +412,7 @@ struct SnowThemeConfiguration: Equatable {
                 birthRate: 3.5,
                 particleScale: 0.50,
                 particleScaleRange: 0.22,
-                particleSpeed: 172,
+                particleSpeed: 152,
                 particleSpeedRange: 48,
                 particleAlpha: 0.32,
                 particleAlphaRange: 0.12,
@@ -422,10 +431,11 @@ struct SnowThemeConfiguration: Equatable {
             return symbols.enumerated().flatMap { symbolIndex, emojiSymbol in
                 rotationVariants.map { rotationVariant in
                     let rotationSpeed = maxRotationSpeed * rotationVariant.speedMultiplier
+                    let textureSource = emojiTextureSource(emojiSymbol, mode: textureMode)
 
                     return baseLayer.replacingVisuals(
                         name: "\(tuning.name)-\(symbolIndex)-\(rotationVariant.name)",
-                        textureSource: .emoji(emojiSymbol),
+                        textureSource: textureSource,
                         textureDiameter: tuning.textureDiameter,
                         textureSoftness: tuning.textureSoftness,
                         birthRate: tuning.birthRate / densityShare / CGFloat(rotationVariants.count),
@@ -443,6 +453,15 @@ struct SnowThemeConfiguration: Equatable {
         }
 
         return baseConfiguration.replacingLayers(layers)
+    }
+
+    private static func emojiTextureSource(_ emojiSymbol: String, mode: EmojiTextureMode) -> ParticleTextureSource {
+        switch mode {
+        case .color:
+            .emoji(emojiSymbol)
+        case .template:
+            .templateEmoji(emojiSymbol)
+        }
     }
 
     func applying(_ settings: SnowEffectSettings) -> SnowThemeConfiguration {
