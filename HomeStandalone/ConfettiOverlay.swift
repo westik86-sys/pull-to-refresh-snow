@@ -89,19 +89,6 @@ struct ConfettiOverlay: View {
         let turbulence = CGFloat(settings.turbulenceMultiplier)
         let sparkle = CGFloat(settings.blurMultiplier)
 
-        drawInitialBurst(
-            elapsed: elapsed,
-            density: density,
-            speed: speed,
-            scale: scale,
-            alpha: alpha,
-            turbulence: turbulence,
-            sparkle: sparkle,
-            resolvedEmoji: resolvedEmoji,
-            size: size,
-            context: &context
-        )
-
         let pieceCount = max(24, Int((54 + density * 86).rounded()))
         let emissionDuration = CGFloat(max(settings.emissionDuration, 0.1))
 
@@ -133,57 +120,6 @@ struct ConfettiOverlay: View {
                 depth: depth,
                 alpha: pieceAlpha,
                 scale: scale,
-                sparkle: sparkle,
-                resolvedEmoji: resolvedEmoji,
-                context: &context
-            )
-        }
-    }
-
-    private func drawInitialBurst(
-        elapsed: TimeInterval,
-        density: CGFloat,
-        speed: CGFloat,
-        scale: CGFloat,
-        alpha: CGFloat,
-        turbulence: CGFloat,
-        sparkle: CGFloat,
-        resolvedEmoji: GraphicsContext.ResolvedText?,
-        size: CGSize,
-        context: inout GraphicsContext
-    ) {
-        let duration = max(1.2, 2.25 / max(speed, 0.2))
-        let age = CGFloat(elapsed)
-        guard age <= duration else { return }
-
-        let pieceCount = max(14, Int((28 + density * 24).rounded()))
-        let origin = CGPoint(x: size.width * 0.5, y: -size.height * 0.08)
-        let minDimension = max(min(size.width, size.height), 1)
-
-        for index in 0..<pieceCount {
-            let seed = Double(index + 1) * 17.371
-            let spread = CGFloat.pi * (0.72 + confettiHash(seed * 19.1) * 0.42)
-            let angle = CGFloat.pi / 2 + (confettiHash(seed * 23.5) - 0.5) * spread
-            let depth = confettiHash(seed * 3.1)
-            let velocity = minDimension * (0.42 + density * 0.18) * speed * (0.78 + confettiHash(seed * 5.7) * 0.72)
-            let gravity = size.height * (0.28 + speed * 0.16)
-            let drift = (turbulence - 0.8) * size.width * age * (0.05 + depth * 0.08)
-            let flutter = sin(age * (3.4 + confettiHash(seed * 7.9) * 6.4) + CGFloat(seed)) * minDimension * 0.032 * (1 + turbulence * 0.32)
-            let x = origin.x + cos(angle) * velocity * age + drift + flutter
-            let y = origin.y + sin(angle) * velocity * age + 0.5 * gravity * age * age
-            let fadeIn = min(age / 0.1, 1)
-            let fadeOut = min((duration - age) / 0.7, 1)
-            let pieceAlpha = min(fadeIn, fadeOut) * (0.56 + depth * 0.44) * min(max(alpha, 0), 1.4)
-            let rotation = CGFloat(elapsed) * speed * (4.0 + confettiHash(seed * 11.3) * 11.0) + CGFloat(seed)
-
-            renderConfettiPiece(
-                index: index,
-                seed: seed,
-                position: CGPoint(x: x, y: y),
-                rotation: rotation,
-                depth: depth,
-                alpha: pieceAlpha,
-                scale: scale * 1.08,
                 sparkle: sparkle,
                 resolvedEmoji: resolvedEmoji,
                 context: &context

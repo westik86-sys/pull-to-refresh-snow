@@ -5504,7 +5504,6 @@ private struct SnowSettingsSheet: View {
 
                             Picker("Тип эффекта", selection: $snowSettings.effectKind) {
                                 Text("Снег").tag(PullRefreshEffectKind.snow)
-                                Text("Листья").tag(PullRefreshEffectKind.leaves)
                                 Text("Эмоджи").tag(PullRefreshEffectKind.emoji)
                                 Text("Конфетти").tag(PullRefreshEffectKind.confetti)
                             }

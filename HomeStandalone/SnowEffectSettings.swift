@@ -3,9 +3,19 @@ import Security
 
 enum PullRefreshEffectKind: String, Codable, CaseIterable, Hashable {
     case snow
-    case leaves
     case emoji
     case confetti
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        self = PullRefreshEffectKind(rawValue: rawValue) ?? .snow
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 enum ConfettiParticleMode: String, Codable, CaseIterable, Hashable {
@@ -133,7 +143,6 @@ struct SnowEffectSettings: Equatable, Codable {
     var isEnabled: Bool = true
     var effectKind: PullRefreshEffectKind = .snow
     private var snowPreset: PresetSettings = .default
-    private var leavesPreset: PresetSettings = .default
     private var emojiPreset: PresetSettings = .default
     private var confettiPreset: PresetSettings = .confettiDefault
 
@@ -172,14 +181,12 @@ struct SnowEffectSettings: Equatable, Codable {
         isEnabled: Bool,
         effectKind: PullRefreshEffectKind,
         snowPreset: PresetSettings,
-        leavesPreset: PresetSettings,
         emojiPreset: PresetSettings,
         confettiPreset: PresetSettings
     ) {
         self.isEnabled = isEnabled
         self.effectKind = effectKind
         self.snowPreset = snowPreset
-        self.leavesPreset = leavesPreset
         self.emojiPreset = emojiPreset
         self.confettiPreset = confettiPreset
     }
@@ -282,7 +289,6 @@ struct SnowEffectSettings: Equatable, Codable {
             isEnabled: isEnabled,
             effectKind: effectKind,
             snowPreset: snowPreset.normalized,
-            leavesPreset: leavesPreset.normalized,
             emojiPreset: emojiPreset.normalized,
             confettiPreset: confettiPreset.normalized
         )
@@ -292,8 +298,6 @@ struct SnowEffectSettings: Equatable, Codable {
         switch kind {
         case .snow:
             snowPreset
-        case .leaves:
-            leavesPreset
         case .emoji:
             emojiPreset
         case .confetti:
@@ -305,7 +309,7 @@ struct SnowEffectSettings: Equatable, Codable {
         switch kind {
         case .confetti:
             .confettiDefault
-        case .snow, .leaves, .emoji:
+        case .snow, .emoji:
             .default
         }
     }
@@ -314,8 +318,6 @@ struct SnowEffectSettings: Equatable, Codable {
         switch kind {
         case .snow:
             snowPreset = preset
-        case .leaves:
-            leavesPreset = preset
         case .emoji:
             emojiPreset = preset
         case .confetti:
@@ -330,8 +332,6 @@ struct SnowEffectSettings: Equatable, Codable {
         switch kind {
         case .snow:
             update(&snowPreset)
-        case .leaves:
-            update(&leavesPreset)
         case .emoji:
             update(&emojiPreset)
         case .confetti:
@@ -346,7 +346,7 @@ struct SnowEffectSettings: Equatable, Codable {
         case isEnabled
         case effectKind
         case snowPreset
-        case leavesPreset
+        case legacyLeavesPreset = "leavesPreset"
         case emojiPreset
         case confettiPreset
         case emojiSymbol
@@ -366,16 +366,15 @@ struct SnowEffectSettings: Equatable, Codable {
         let decodedEffectKind = try container.decodeIfPresent(PullRefreshEffectKind.self, forKey: .effectKind) ?? .snow
 
         let decodedSnowPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .snowPreset)
-        let decodedLeavesPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .leavesPreset)
+        let decodedLegacyLeavesPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .legacyLeavesPreset)
         let decodedEmojiPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .emojiPreset)
         let decodedConfettiPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .confettiPreset)
 
-        if decodedSnowPreset != nil || decodedLeavesPreset != nil || decodedEmojiPreset != nil || decodedConfettiPreset != nil {
+        if decodedSnowPreset != nil || decodedLegacyLeavesPreset != nil || decodedEmojiPreset != nil || decodedConfettiPreset != nil {
             self.init(
                 isEnabled: decodedIsEnabled,
                 effectKind: decodedEffectKind,
-                snowPreset: decodedSnowPreset ?? .default,
-                leavesPreset: decodedLeavesPreset ?? .default,
+                snowPreset: decodedSnowPreset ?? decodedLegacyLeavesPreset ?? .default,
                 emojiPreset: decodedEmojiPreset ?? .default,
                 confettiPreset: decodedConfettiPreset ?? .confettiDefault
             )
@@ -398,7 +397,6 @@ struct SnowEffectSettings: Equatable, Codable {
             isEnabled: decodedIsEnabled,
             effectKind: decodedEffectKind,
             snowPreset: decodedEffectKind == .snow ? legacyPreset : .default,
-            leavesPreset: decodedEffectKind == .leaves ? legacyPreset : .default,
             emojiPreset: decodedEffectKind == .emoji ? legacyPreset : .default,
             confettiPreset: decodedEffectKind == .confetti ? legacyPreset : .confettiDefault
         )
@@ -409,7 +407,6 @@ struct SnowEffectSettings: Equatable, Codable {
         try container.encode(isEnabled, forKey: .isEnabled)
         try container.encode(effectKind, forKey: .effectKind)
         try container.encode(snowPreset, forKey: .snowPreset)
-        try container.encode(leavesPreset, forKey: .leavesPreset)
         try container.encode(emojiPreset, forKey: .emojiPreset)
         try container.encode(confettiPreset, forKey: .confettiPreset)
     }

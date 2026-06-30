@@ -14,7 +14,6 @@ enum SnowParticleTextureKind: Hashable {
     case frostSpeck
     case frostDot
     case frostBlur
-    case leaf
 }
 
 enum ParticleTextureSource: Hashable {
@@ -314,8 +313,6 @@ struct SnowThemeConfiguration: Equatable {
         switch effect {
         case .snow:
             snowConfiguration(for: preset)
-        case .leaves:
-            leavesConfiguration(for: preset)
         case .emoji:
             emojiConfiguration(for: preset, emojiSymbols: emojiSymbols)
         case .confetti:
@@ -330,50 +327,6 @@ struct SnowThemeConfiguration: Equatable {
         case .light:
             light
         }
-    }
-
-    private static func leavesConfiguration(for preset: SnowVisualPreset) -> SnowThemeConfiguration {
-        let baseConfiguration = snowConfiguration(for: preset)
-        let backColor: UIColor
-        let midColor: UIColor
-        let frontColor: UIColor
-
-        switch preset {
-        case .dark:
-            backColor = UIColor(red: 95 / 255, green: 134 / 255, blue: 66 / 255, alpha: 1)
-            midColor = UIColor(red: 148 / 255, green: 174 / 255, blue: 79 / 255, alpha: 1)
-            frontColor = UIColor(red: 192 / 255, green: 151 / 255, blue: 63 / 255, alpha: 1)
-        case .light:
-            backColor = UIColor(red: 73 / 255, green: 112 / 255, blue: 54 / 255, alpha: 1)
-            midColor = UIColor(red: 124 / 255, green: 151 / 255, blue: 67 / 255, alpha: 1)
-            frontColor = UIColor(red: 174 / 255, green: 124 / 255, blue: 49 / 255, alpha: 1)
-        }
-
-        return baseConfiguration.replacingLayers(
-            [
-                baseConfiguration.layers[0].replacingVisuals(
-                    name: "back-small-leaves",
-                    textureSource: .generated(.leaf),
-                    textureDiameter: 28,
-                    particleColor: backColor,
-                    particleColorBlendFactor: 0.42
-                ),
-                baseConfiguration.layers[1].replacingVisuals(
-                    name: "mid-drifting-leaves",
-                    textureSource: .generated(.leaf),
-                    textureDiameter: 34,
-                    particleColor: midColor,
-                    particleColorBlendFactor: 0.36
-                ),
-                baseConfiguration.layers[2].replacingVisuals(
-                    name: "front-large-leaves",
-                    textureSource: .generated(.leaf),
-                    textureDiameter: 42,
-                    particleColor: frontColor,
-                    particleColorBlendFactor: 0.30
-                )
-            ]
-        )
     }
 
     private static func emojiConfiguration(
