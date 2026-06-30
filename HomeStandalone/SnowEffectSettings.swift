@@ -8,8 +8,23 @@ enum PullRefreshEffectKind: String, Codable, CaseIterable, Hashable {
     case confetti
 }
 
+enum ConfettiParticleMode: String, Codable, CaseIterable, Hashable {
+    case confetti
+    case customShape
+    case emoji
+}
+
+enum ConfettiCustomShape: String, Codable, CaseIterable, Hashable {
+    case star
+    case heart
+    case plus
+    case spark
+    case diamond
+}
+
 struct SnowEffectSettings: Equatable, Codable {
     static let defaultEmojiSymbol = "🍂"
+    static let defaultConfettiEmojiSymbol = "🎉"
     static let maxEmojiSymbols = 6
 
     private struct PresetSettings: Equatable, Codable {
@@ -22,8 +37,37 @@ struct SnowEffectSettings: Equatable, Codable {
         var turbulenceMultiplier: Double = 1.0
         var overlayHeightPercent: Double = 25.0
         var blurMultiplier: Double = 1.0
+        var confettiParticleMode: ConfettiParticleMode = .confetti
+        var confettiCustomShape: ConfettiCustomShape = .star
 
         static let `default` = PresetSettings()
+        static let confettiDefault = PresetSettings(emojiSymbol: SnowEffectSettings.defaultConfettiEmojiSymbol)
+
+        init(
+            emojiSymbol: String = SnowEffectSettings.defaultEmojiSymbol,
+            emissionDuration: Double = 2.0,
+            densityMultiplier: Double = 1.0,
+            speedMultiplier: Double = 1.0,
+            scaleMultiplier: Double = 1.0,
+            alphaMultiplier: Double = 1.0,
+            turbulenceMultiplier: Double = 1.0,
+            overlayHeightPercent: Double = 25.0,
+            blurMultiplier: Double = 1.0,
+            confettiParticleMode: ConfettiParticleMode = .confetti,
+            confettiCustomShape: ConfettiCustomShape = .star
+        ) {
+            self.emojiSymbol = emojiSymbol
+            self.emissionDuration = emissionDuration
+            self.densityMultiplier = densityMultiplier
+            self.speedMultiplier = speedMultiplier
+            self.scaleMultiplier = scaleMultiplier
+            self.alphaMultiplier = alphaMultiplier
+            self.turbulenceMultiplier = turbulenceMultiplier
+            self.overlayHeightPercent = overlayHeightPercent
+            self.blurMultiplier = blurMultiplier
+            self.confettiParticleMode = confettiParticleMode
+            self.confettiCustomShape = confettiCustomShape
+        }
 
         var normalized: PresetSettings {
             PresetSettings(
@@ -35,8 +79,54 @@ struct SnowEffectSettings: Equatable, Codable {
                 alphaMultiplier: alphaMultiplier.clamped(to: 0.35...2.5),
                 turbulenceMultiplier: turbulenceMultiplier.clamped(to: 0...1.8),
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
-                blurMultiplier: blurMultiplier.clamped(to: 0...2)
+                blurMultiplier: blurMultiplier.clamped(to: 0...2),
+                confettiParticleMode: confettiParticleMode,
+                confettiCustomShape: confettiCustomShape
             )
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case emojiSymbol
+            case emissionDuration
+            case densityMultiplier
+            case speedMultiplier
+            case scaleMultiplier
+            case alphaMultiplier
+            case turbulenceMultiplier
+            case overlayHeightPercent
+            case blurMultiplier
+            case confettiParticleMode
+            case confettiCustomShape
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            emojiSymbol = try container.decodeIfPresent(String.self, forKey: .emojiSymbol) ?? SnowEffectSettings.defaultEmojiSymbol
+            emissionDuration = try container.decodeIfPresent(Double.self, forKey: .emissionDuration) ?? 2.0
+            densityMultiplier = try container.decodeIfPresent(Double.self, forKey: .densityMultiplier) ?? 1.0
+            speedMultiplier = try container.decodeIfPresent(Double.self, forKey: .speedMultiplier) ?? 1.0
+            scaleMultiplier = try container.decodeIfPresent(Double.self, forKey: .scaleMultiplier) ?? 1.0
+            alphaMultiplier = try container.decodeIfPresent(Double.self, forKey: .alphaMultiplier) ?? 1.0
+            turbulenceMultiplier = try container.decodeIfPresent(Double.self, forKey: .turbulenceMultiplier) ?? 1.0
+            overlayHeightPercent = try container.decodeIfPresent(Double.self, forKey: .overlayHeightPercent) ?? 25.0
+            blurMultiplier = try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
+            confettiParticleMode = try container.decodeIfPresent(ConfettiParticleMode.self, forKey: .confettiParticleMode) ?? .confetti
+            confettiCustomShape = try container.decodeIfPresent(ConfettiCustomShape.self, forKey: .confettiCustomShape) ?? .star
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(emojiSymbol, forKey: .emojiSymbol)
+            try container.encode(emissionDuration, forKey: .emissionDuration)
+            try container.encode(densityMultiplier, forKey: .densityMultiplier)
+            try container.encode(speedMultiplier, forKey: .speedMultiplier)
+            try container.encode(scaleMultiplier, forKey: .scaleMultiplier)
+            try container.encode(alphaMultiplier, forKey: .alphaMultiplier)
+            try container.encode(turbulenceMultiplier, forKey: .turbulenceMultiplier)
+            try container.encode(overlayHeightPercent, forKey: .overlayHeightPercent)
+            try container.encode(blurMultiplier, forKey: .blurMultiplier)
+            try container.encode(confettiParticleMode, forKey: .confettiParticleMode)
+            try container.encode(confettiCustomShape, forKey: .confettiCustomShape)
         }
     }
 
@@ -45,7 +135,7 @@ struct SnowEffectSettings: Equatable, Codable {
     private var snowPreset: PresetSettings = .default
     private var leavesPreset: PresetSettings = .default
     private var emojiPreset: PresetSettings = .default
-    private var confettiPreset: PresetSettings = .default
+    private var confettiPreset: PresetSettings = .confettiDefault
 
     static let `default` = SnowEffectSettings()
 
@@ -139,6 +229,16 @@ struct SnowEffectSettings: Equatable, Codable {
         set { updatePreset(for: effectKind) { $0.blurMultiplier = newValue } }
     }
 
+    var confettiParticleMode: ConfettiParticleMode {
+        get { preset(for: effectKind).confettiParticleMode }
+        set { updatePreset(for: effectKind) { $0.confettiParticleMode = newValue } }
+    }
+
+    var confettiCustomShape: ConfettiCustomShape {
+        get { preset(for: effectKind).confettiCustomShape }
+        set { updatePreset(for: effectKind) { $0.confettiCustomShape = newValue } }
+    }
+
     static var persisted: SnowEffectSettings {
         if let userDefaultsSettings = loadFromUserDefaults() {
             return userDefaultsSettings.normalized
@@ -160,7 +260,7 @@ struct SnowEffectSettings: Equatable, Codable {
     }
 
     mutating func resetCurrentPreset() {
-        setPreset(.default, for: effectKind)
+        setPreset(Self.defaultPreset(for: effectKind), for: effectKind)
     }
 
     var resolvedEmojiSymbols: [String] {
@@ -170,6 +270,11 @@ struct SnowEffectSettings: Equatable, Codable {
 
     var resolvedEmojiSymbol: String {
         resolvedEmojiSymbols.first ?? Self.defaultEmojiSymbol
+    }
+
+    var resolvedConfettiEmojiSymbol: String {
+        let normalizedSymbol = Self.normalizedEmojiInput(emojiSymbol)
+        return normalizedSymbol.isEmpty ? Self.defaultConfettiEmojiSymbol : String(normalizedSymbol.prefix(1))
     }
 
     private var normalized: SnowEffectSettings {
@@ -193,6 +298,15 @@ struct SnowEffectSettings: Equatable, Codable {
             emojiPreset
         case .confetti:
             confettiPreset
+        }
+    }
+
+    private static func defaultPreset(for kind: PullRefreshEffectKind) -> PresetSettings {
+        switch kind {
+        case .confetti:
+            .confettiDefault
+        case .snow, .leaves, .emoji:
+            .default
         }
     }
 
@@ -263,7 +377,7 @@ struct SnowEffectSettings: Equatable, Codable {
                 snowPreset: decodedSnowPreset ?? .default,
                 leavesPreset: decodedLeavesPreset ?? .default,
                 emojiPreset: decodedEmojiPreset ?? .default,
-                confettiPreset: decodedConfettiPreset ?? .default
+                confettiPreset: decodedConfettiPreset ?? .confettiDefault
             )
             return
         }
@@ -286,7 +400,7 @@ struct SnowEffectSettings: Equatable, Codable {
             snowPreset: decodedEffectKind == .snow ? legacyPreset : .default,
             leavesPreset: decodedEffectKind == .leaves ? legacyPreset : .default,
             emojiPreset: decodedEffectKind == .emoji ? legacyPreset : .default,
-            confettiPreset: decodedEffectKind == .confetti ? legacyPreset : .default
+            confettiPreset: decodedEffectKind == .confetti ? legacyPreset : .confettiDefault
         )
     }
 

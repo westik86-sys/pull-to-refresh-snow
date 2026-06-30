@@ -5,6 +5,8 @@ struct ConfettiOverlay: View {
     let settings: SnowEffectSettings
     let onFinished: () -> Void
 
+    private let referenceEmojiSize: CGFloat = 80
+
     @State private var activeTriggerID: UUID?
     @State private var startDate: Date?
     @State private var finishWorkItem: DispatchWorkItem?
@@ -17,7 +19,16 @@ struct ConfettiOverlay: View {
                 let elapsed = max(0, timeline.date.timeIntervalSince(startDate))
                 guard elapsed <= totalDuration else { return }
 
-                drawConfetti(elapsed: elapsed, size: size, context: &context)
+                let resolvedEmoji: GraphicsContext.ResolvedText? = settings.confettiParticleMode == .emoji
+                    ? context.resolve(Text(settings.resolvedConfettiEmojiSymbol).font(.system(size: referenceEmojiSize)))
+                    : nil
+
+                drawConfetti(
+                    elapsed: elapsed,
+                    resolvedEmoji: resolvedEmoji,
+                    size: size,
+                    context: &context
+                )
             }
         }
         .accessibilityHidden(true)
@@ -67,6 +78,7 @@ struct ConfettiOverlay: View {
 
     private func drawConfetti(
         elapsed: TimeInterval,
+        resolvedEmoji: GraphicsContext.ResolvedText?,
         size: CGSize,
         context: inout GraphicsContext
     ) {
@@ -85,6 +97,7 @@ struct ConfettiOverlay: View {
             alpha: alpha,
             turbulence: turbulence,
             sparkle: sparkle,
+            resolvedEmoji: resolvedEmoji,
             size: size,
             context: &context
         )
@@ -121,6 +134,7 @@ struct ConfettiOverlay: View {
                 alpha: pieceAlpha,
                 scale: scale,
                 sparkle: sparkle,
+                resolvedEmoji: resolvedEmoji,
                 context: &context
             )
         }
@@ -134,6 +148,7 @@ struct ConfettiOverlay: View {
         alpha: CGFloat,
         turbulence: CGFloat,
         sparkle: CGFloat,
+        resolvedEmoji: GraphicsContext.ResolvedText?,
         size: CGSize,
         context: inout GraphicsContext
     ) {
@@ -170,6 +185,7 @@ struct ConfettiOverlay: View {
                 alpha: pieceAlpha,
                 scale: scale * 1.08,
                 sparkle: sparkle,
+                resolvedEmoji: resolvedEmoji,
                 context: &context
             )
         }
@@ -184,6 +200,7 @@ struct ConfettiOverlay: View {
         alpha: CGFloat,
         scale: CGFloat,
         sparkle: CGFloat,
+        resolvedEmoji: GraphicsContext.ResolvedText?,
         context: inout GraphicsContext
     ) {
         guard alpha > 0.01 else { return }
@@ -197,22 +214,49 @@ struct ConfettiOverlay: View {
         var pieceContext = context
         pieceContext.translateBy(x: position.x, y: position.y)
         pieceContext.rotate(by: .radians(Double(rotation)))
-        pieceContext.scaleBy(x: flip, y: 1)
 
-        let shape = index % 5
-        renderPaperConfetti(
-            shape: shape,
-            baseLength: baseLength,
-            baseWidth: baseWidth,
-            color: color,
-            context: &pieceContext
-        )
-
-        if sparkle > 0.05 && shape != 3 && shine > 0.88 {
-            renderGlint(
+        switch settings.confettiParticleMode {
+        case .confetti:
+            let shape = index % 5
+            pieceContext.scaleBy(x: flip, y: 1)
+            renderPaperConfetti(
+                shape: shape,
                 baseLength: baseLength,
                 baseWidth: baseWidth,
-                alpha: alpha * min(sparkle, 1.4),
+                color: color,
+                context: &pieceContext
+            )
+
+            if sparkle > 0.05 && shape != 3 && shine > 0.88 {
+                renderGlint(
+                    baseLength: baseLength,
+                    baseWidth: baseWidth,
+                    alpha: alpha * min(sparkle, 1.4),
+                    context: &pieceContext
+                )
+            }
+        case .customShape:
+            pieceContext.scaleBy(x: 0.78 + flip * 0.22, y: 1)
+            renderCustomShape(
+                baseLength: baseLength,
+                baseWidth: baseWidth,
+                color: color,
+                context: &pieceContext
+            )
+
+            if sparkle > 0.05 && shine > 0.88 {
+                renderGlint(
+                    baseLength: baseLength,
+                    baseWidth: baseWidth,
+                    alpha: alpha * min(sparkle, 1.4),
+                    context: &pieceContext
+                )
+            }
+        case .emoji:
+            renderEmoji(
+                baseLength: baseLength,
+                alpha: alpha,
+                resolved: resolvedEmoji,
                 context: &pieceContext
             )
         }
@@ -267,6 +311,95 @@ struct ConfettiOverlay: View {
         }
     }
 
+    private func renderCustomShape(
+        baseLength: CGFloat,
+        baseWidth: CGFloat,
+        color: Color,
+        context: inout GraphicsContext
+    ) {
+        let size = max(baseLength * 0.54, baseWidth * 1.4)
+
+        switch settings.confettiCustomShape {
+        case .star:
+            context.fill(starPath(radius: size * 0.62, innerRadius: size * 0.27), with: .color(color))
+        case .heart:
+            var path = Path()
+            path.move(to: CGPoint(x: 0, y: size * 0.48))
+            path.addCurve(
+                to: CGPoint(x: -size * 0.62, y: -size * 0.08),
+                control1: CGPoint(x: -size * 0.5, y: size * 0.16),
+                control2: CGPoint(x: -size * 0.72, y: size * 0.1)
+            )
+            path.addCurve(
+                to: CGPoint(x: 0, y: -size * 0.36),
+                control1: CGPoint(x: -size * 0.56, y: -size * 0.48),
+                control2: CGPoint(x: -size * 0.16, y: -size * 0.46)
+            )
+            path.addCurve(
+                to: CGPoint(x: size * 0.62, y: -size * 0.08),
+                control1: CGPoint(x: size * 0.16, y: -size * 0.46),
+                control2: CGPoint(x: size * 0.56, y: -size * 0.48)
+            )
+            path.addCurve(
+                to: CGPoint(x: 0, y: size * 0.48),
+                control1: CGPoint(x: size * 0.72, y: size * 0.1),
+                control2: CGPoint(x: size * 0.5, y: size * 0.16)
+            )
+            context.fill(path, with: .color(color))
+        case .plus:
+            let arm = size * 0.2
+            let reach = size * 0.58
+            var path = Path()
+            path.move(to: CGPoint(x: -arm, y: -reach))
+            path.addLine(to: CGPoint(x: arm, y: -reach))
+            path.addLine(to: CGPoint(x: arm, y: -arm))
+            path.addLine(to: CGPoint(x: reach, y: -arm))
+            path.addLine(to: CGPoint(x: reach, y: arm))
+            path.addLine(to: CGPoint(x: arm, y: arm))
+            path.addLine(to: CGPoint(x: arm, y: reach))
+            path.addLine(to: CGPoint(x: -arm, y: reach))
+            path.addLine(to: CGPoint(x: -arm, y: arm))
+            path.addLine(to: CGPoint(x: -reach, y: arm))
+            path.addLine(to: CGPoint(x: -reach, y: -arm))
+            path.addLine(to: CGPoint(x: -arm, y: -arm))
+            path.closeSubpath()
+            context.fill(path, with: .color(color))
+        case .spark:
+            var path = Path()
+            path.move(to: CGPoint(x: 0, y: -size * 0.72))
+            path.addLine(to: CGPoint(x: size * 0.15, y: -size * 0.14))
+            path.addLine(to: CGPoint(x: size * 0.58, y: 0))
+            path.addLine(to: CGPoint(x: size * 0.15, y: size * 0.14))
+            path.addLine(to: CGPoint(x: 0, y: size * 0.72))
+            path.addLine(to: CGPoint(x: -size * 0.15, y: size * 0.14))
+            path.addLine(to: CGPoint(x: -size * 0.58, y: 0))
+            path.addLine(to: CGPoint(x: -size * 0.15, y: -size * 0.14))
+            path.closeSubpath()
+            context.fill(path, with: .color(color))
+        case .diamond:
+            var path = Path()
+            path.move(to: CGPoint(x: 0, y: -size * 0.66))
+            path.addLine(to: CGPoint(x: size * 0.48, y: 0))
+            path.addLine(to: CGPoint(x: 0, y: size * 0.66))
+            path.addLine(to: CGPoint(x: -size * 0.48, y: 0))
+            path.closeSubpath()
+            context.fill(path, with: .color(color))
+        }
+    }
+
+    private func renderEmoji(
+        baseLength: CGFloat,
+        alpha: CGFloat,
+        resolved: GraphicsContext.ResolvedText?,
+        context: inout GraphicsContext
+    ) {
+        guard let resolved else { return }
+        let scale = (baseLength * 1.08) / referenceEmojiSize
+        context.scaleBy(x: scale, y: scale)
+        context.opacity = Double(alpha)
+        context.draw(resolved, at: .zero, anchor: .center)
+    }
+
     private func renderGlint(
         baseLength: CGFloat,
         baseWidth: CGFloat,
@@ -280,6 +413,26 @@ struct ConfettiOverlay: View {
             height: max(1, baseWidth * 0.3)
         )
         context.fill(Path(ellipseIn: glintRect), with: .color(.white.opacity(Double(alpha * 0.42))))
+    }
+
+    private func starPath(radius: CGFloat, innerRadius: CGFloat) -> Path {
+        var path = Path()
+        let points = 5
+
+        for step in 0..<(points * 2) {
+            let angle = -.pi / 2 + CGFloat(step) * .pi / CGFloat(points)
+            let currentRadius = step.isMultiple(of: 2) ? radius : innerRadius
+            let point = CGPoint(x: cos(angle) * currentRadius, y: sin(angle) * currentRadius)
+
+            if step == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+
+        path.closeSubpath()
+        return path
     }
 
     private func confettiColor(seed: Double) -> Color {

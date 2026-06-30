@@ -5528,6 +5528,10 @@ private struct SnowSettingsSheet: View {
                             }
                         }
 
+                        if snowSettings.effectKind == .confetti {
+                            confettiObjectControls
+                        }
+
                         slider(
                             title: "Длительность эмиссии",
                             value: $snowSettings.emissionDuration,
@@ -5602,6 +5606,55 @@ private struct SnowSettingsSheet: View {
         }
     }
 
+    private var confettiObjectControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Объекты")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.secondary)
+
+                Picker("Объекты", selection: $snowSettings.confettiParticleMode) {
+                    ForEach(ConfettiParticleMode.allCases, id: \.self) { mode in
+                        Text(mode.settingsTitle).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
+            if snowSettings.confettiParticleMode == .customShape {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Форма")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+
+                    Picker("Форма", selection: $snowSettings.confettiCustomShape) {
+                        ForEach(ConfettiCustomShape.allCases, id: \.self) { shape in
+                            Text(shape.settingsTitle).tag(shape)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+            }
+
+            if snowSettings.confettiParticleMode == .emoji {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Emoji")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.secondary)
+
+                    TextField(
+                        "🎉",
+                        text: $snowSettings.emojiSymbol
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(size: 24))
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                }
+            }
+        }
+    }
+
     private func section<Content: View>(
         _ title: String,
         @ViewBuilder content: () -> Content
@@ -5632,6 +5685,36 @@ private struct SnowSettingsSheet: View {
                     .foregroundStyle(.secondary)
             }
             Slider(value: value, in: range)
+        }
+    }
+}
+
+private extension ConfettiParticleMode {
+    var settingsTitle: String {
+        switch self {
+        case .confetti:
+            "Конфетти"
+        case .customShape:
+            "Фигура"
+        case .emoji:
+            "Emoji"
+        }
+    }
+}
+
+private extension ConfettiCustomShape {
+    var settingsTitle: String {
+        switch self {
+        case .star:
+            "Звезда"
+        case .heart:
+            "Сердце"
+        case .plus:
+            "Плюс"
+        case .spark:
+            "Искра"
+        case .diamond:
+            "Ромб"
         }
     }
 }
