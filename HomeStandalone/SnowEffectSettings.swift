@@ -93,12 +93,16 @@ struct SnowEffectSettings: Equatable, Codable {
         }
 
         var normalized: PresetSettings {
+            normalized(withScaleRange: 0.55...1.8)
+        }
+
+        func normalized(withScaleRange scaleRange: ClosedRange<Double>) -> PresetSettings {
             PresetSettings(
                 emojiSymbol: SnowEffectSettings.normalizedEmojiInput(emojiSymbol),
                 emissionDuration: emissionDuration.clamped(to: 1.0...3.5),
                 densityMultiplier: densityMultiplier.clamped(to: 0.25...2.5),
                 speedMultiplier: speedMultiplier.clamped(to: 0.45...1.9),
-                scaleMultiplier: scaleMultiplier.clamped(to: 0.55...1.8),
+                scaleMultiplier: scaleMultiplier.clamped(to: scaleRange),
                 alphaMultiplier: alphaMultiplier.clamped(to: 0.35...2.5),
                 turbulenceMultiplier: turbulenceMultiplier.clamped(to: 0...1.8),
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
@@ -338,7 +342,7 @@ struct SnowEffectSettings: Equatable, Codable {
             isEnabled: isEnabled,
             effectKind: effectKind,
             snowPreset: snowPreset.normalized,
-            emojiPreset: emojiPreset.normalized,
+            emojiPreset: emojiPreset.normalized(withScaleRange: 0.2...1.8),
             confettiPreset: confettiPreset.normalized
         )
     }

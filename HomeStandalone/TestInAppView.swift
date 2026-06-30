@@ -5569,7 +5569,7 @@ private struct SnowSettingsSheet: View {
                         slider(
                             title: "Размер частиц",
                             value: $snowSettings.scaleMultiplier,
-                            range: 0.55...1.8,
+                            range: particleScaleRange,
                             valueText: "\(Int((snowSettings.scaleMultiplier * 100).rounded()))%"
                         )
 
@@ -5721,6 +5721,10 @@ private struct SnowSettingsSheet: View {
             }
             Slider(value: value, in: range)
         }
+    }
+
+    private var particleScaleRange: ClosedRange<Double> {
+        snowSettings.effectKind == .emoji ? 0.2...1.8 : 0.55...1.8
     }
 }
 
