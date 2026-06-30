@@ -318,6 +318,8 @@ struct SnowThemeConfiguration: Equatable {
             leavesConfiguration(for: preset)
         case .emoji:
             emojiConfiguration(for: preset, emojiSymbols: emojiSymbols)
+        case .confetti:
+            snowConfiguration(for: preset)
         }
     }
 

@@ -17,6 +17,7 @@
 		BF0000000000000000000015 /* SnowTextureFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000015 /* SnowTextureFactory.swift */; };
 		BF0000000000000000000016 /* SnowThemeConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000016 /* SnowThemeConfiguration.swift */; };
 		BF0000000000000000000017 /* SnowEffectSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000017 /* SnowEffectSettings.swift */; };
+		BF0000000000000000000018 /* ConfettiOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR0000000000000000000018 /* ConfettiOverlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 		FR0000000000000000000015 /* SnowTextureFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnowTextureFactory.swift; sourceTree = "<group>"; };
 		FR0000000000000000000016 /* SnowThemeConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnowThemeConfiguration.swift; sourceTree = "<group>"; };
 		FR0000000000000000000017 /* SnowEffectSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnowEffectSettings.swift; sourceTree = "<group>"; };
+		FR0000000000000000000018 /* ConfettiOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 				FR0000000000000000000015 /* SnowTextureFactory.swift */,
 				FR0000000000000000000016 /* SnowThemeConfiguration.swift */,
 				FR0000000000000000000017 /* SnowEffectSettings.swift */,
+				FR0000000000000000000018 /* ConfettiOverlay.swift */,
 				FR000000000000000000000E /* Assets.xcassets */,
 			);
 			path = HomeStandalone;
@@ -155,6 +158,7 @@
 				BF0000000000000000000015 /* SnowTextureFactory.swift in Sources */,
 				BF0000000000000000000016 /* SnowThemeConfiguration.swift in Sources */,
 				BF0000000000000000000017 /* SnowEffectSettings.swift in Sources */,
+				BF0000000000000000000018 /* ConfettiOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

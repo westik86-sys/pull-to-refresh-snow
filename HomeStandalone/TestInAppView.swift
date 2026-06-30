@@ -244,12 +244,20 @@ struct TestInAppView: View {
                     )
                     .zIndex(3)
 
-                let snowOverlayHeight = screenHeight * snowEffectSettings.overlayHeightPercent / 100
-                SnowOverlay(triggerID: snowOverlayID, settings: snowEffectSettings) {
-                    self.snowOverlayID = nil
+                let effectOverlayHeight = screenHeight * snowEffectSettings.overlayHeightPercent / 100
+                Group {
+                    if snowEffectSettings.effectKind == .confetti {
+                        ConfettiOverlay(triggerID: snowOverlayID, settings: snowEffectSettings) {
+                            self.snowOverlayID = nil
+                        }
+                    } else {
+                        SnowOverlay(triggerID: snowOverlayID, settings: snowEffectSettings) {
+                            self.snowOverlayID = nil
+                        }
+                    }
                 }
-                .frame(width: screenWidth, height: snowOverlayHeight)
-                .position(x: screenWidth / 2, y: snowOverlayHeight / 2)
+                .frame(width: screenWidth, height: effectOverlayHeight)
+                .position(x: screenWidth / 2, y: effectOverlayHeight / 2)
                 .allowsHitTesting(false)
                 .zIndex(4)
             }
@@ -5498,6 +5506,7 @@ private struct SnowSettingsSheet: View {
                                 Text("Снег").tag(PullRefreshEffectKind.snow)
                                 Text("Листья").tag(PullRefreshEffectKind.leaves)
                                 Text("Эмоджи").tag(PullRefreshEffectKind.emoji)
+                                Text("Конфетти").tag(PullRefreshEffectKind.confetti)
                             }
                             .pickerStyle(.segmented)
                         }
