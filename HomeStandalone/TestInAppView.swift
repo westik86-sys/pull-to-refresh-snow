@@ -5512,13 +5512,28 @@ private struct SnowSettingsSheet: View {
                         }
 
                         if snowSettings.effectKind.usesEmojiInput {
+                            if snowSettings.effectKind == .emoji {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Сезон")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(.secondary)
+
+                                    Picker("Сезон", selection: $snowSettings.emojiSeason) {
+                                        ForEach(EmojiSeason.allCases, id: \.self) { season in
+                                            Text(season.settingsTitle).tag(season)
+                                        }
+                                    }
+                                    .pickerStyle(.segmented)
+                                }
+                            }
+
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(snowSettings.effectKind == .emojiTemplate ? "Emoji Mono" : "Emoji")
                                     .font(.system(size: 13, weight: .medium))
                                     .foregroundColor(.secondary)
 
                                 TextField(
-                                    snowSettings.effectKind == .emojiTemplate ? "❄️✦✳︎" : "🍂❄️✨",
+                                    emojiInputPlaceholder,
                                     text: $snowSettings.emojiSymbol
                                 )
                                 .textFieldStyle(.roundedBorder)
@@ -5756,6 +5771,33 @@ private struct SnowSettingsSheet: View {
 
     private var particleScaleRange: ClosedRange<Double> {
         snowSettings.effectKind.usesEmojiInput ? 0.2...1.8 : 0.55...1.8
+    }
+
+    private var emojiInputPlaceholder: String {
+        switch snowSettings.effectKind {
+        case .emoji:
+            switch snowSettings.emojiSeason {
+            case .winter:
+                "❄️☃️✨"
+            case .autumn:
+                "🍂🍁✨"
+            }
+        case .emojiTemplate:
+            "❄️✦✳︎"
+        case .snow, .confetti:
+            "🍂❄️✨"
+        }
+    }
+}
+
+private extension EmojiSeason {
+    var settingsTitle: String {
+        switch self {
+        case .winter:
+            "Зима"
+        case .autumn:
+            "Осень"
+        }
     }
 }
 

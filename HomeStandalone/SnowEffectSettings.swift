@@ -44,8 +44,15 @@ enum ConfettiCustomShape: String, Codable, CaseIterable, Hashable {
     case diamond
 }
 
+enum EmojiSeason: String, Codable, CaseIterable, Hashable {
+    case winter
+    case autumn
+}
+
 struct SnowEffectSettings: Equatable, Codable {
-    static let defaultEmojiSymbol = "🍂"
+    static let defaultEmojiWinterSymbol = "❄️"
+    static let defaultEmojiAutumnSymbol = "🍂"
+    static let defaultEmojiSymbol = defaultEmojiWinterSymbol
     static let defaultTemplateEmojiSymbol = "❄️"
     static let defaultConfettiEmojiSymbol = "🎉"
     static let maxEmojiSymbols = 6
@@ -69,6 +76,8 @@ struct SnowEffectSettings: Equatable, Codable {
         var confettiSpin: Double = 1.0
 
         static let `default` = PresetSettings()
+        static let emojiWinterDefault = PresetSettings(emojiSymbol: SnowEffectSettings.defaultEmojiWinterSymbol)
+        static let emojiAutumnDefault = PresetSettings(emojiSymbol: SnowEffectSettings.defaultEmojiAutumnSymbol)
         static let templateEmojiDefault = PresetSettings(emojiSymbol: SnowEffectSettings.defaultTemplateEmojiSymbol)
         static let confettiDefault = PresetSettings(emojiSymbol: SnowEffectSettings.defaultConfettiEmojiSymbol)
 
@@ -190,7 +199,9 @@ struct SnowEffectSettings: Equatable, Codable {
     var isEnabled: Bool = true
     var effectKind: PullRefreshEffectKind = .snow
     private var snowPreset: PresetSettings = .default
-    private var emojiPreset: PresetSettings = .default
+    var emojiSeason: EmojiSeason = .winter
+    private var emojiWinterPreset: PresetSettings = .emojiWinterDefault
+    private var emojiAutumnPreset: PresetSettings = .emojiAutumnDefault
     private var emojiTemplatePreset: PresetSettings = .templateEmojiDefault
     private var confettiPreset: PresetSettings = .confettiDefault
 
@@ -229,14 +240,18 @@ struct SnowEffectSettings: Equatable, Codable {
         isEnabled: Bool,
         effectKind: PullRefreshEffectKind,
         snowPreset: PresetSettings,
-        emojiPreset: PresetSettings,
+        emojiSeason: EmojiSeason,
+        emojiWinterPreset: PresetSettings,
+        emojiAutumnPreset: PresetSettings,
         emojiTemplatePreset: PresetSettings,
         confettiPreset: PresetSettings
     ) {
         self.isEnabled = isEnabled
         self.effectKind = effectKind
         self.snowPreset = snowPreset
-        self.emojiPreset = emojiPreset
+        self.emojiSeason = emojiSeason
+        self.emojiWinterPreset = emojiWinterPreset
+        self.emojiAutumnPreset = emojiAutumnPreset
         self.emojiTemplatePreset = emojiTemplatePreset
         self.confettiPreset = confettiPreset
     }
@@ -337,12 +352,17 @@ struct SnowEffectSettings: Equatable, Codable {
     }
 
     mutating func resetCurrentPreset() {
+        if effectKind == .emoji {
+            setPreset(Self.defaultEmojiPreset(for: emojiSeason), for: effectKind)
+            return
+        }
+
         setPreset(Self.defaultPreset(for: effectKind), for: effectKind)
     }
 
     var resolvedEmojiSymbols: [String] {
         let symbols = Self.emojiSymbols(from: emojiSymbol)
-        return symbols.isEmpty ? [Self.defaultEmojiSymbol(for: effectKind)] : symbols
+        return symbols.isEmpty ? [Self.defaultEmojiSymbol(for: effectKind, emojiSeason: emojiSeason)] : symbols
     }
 
     var resolvedEmojiSymbol: String {
@@ -359,7 +379,9 @@ struct SnowEffectSettings: Equatable, Codable {
             isEnabled: isEnabled,
             effectKind: effectKind,
             snowPreset: snowPreset.normalized,
-            emojiPreset: emojiPreset.normalized(withScaleRange: 0.2...1.8),
+            emojiSeason: emojiSeason,
+            emojiWinterPreset: emojiWinterPreset.normalized(withScaleRange: 0.2...1.8),
+            emojiAutumnPreset: emojiAutumnPreset.normalized(withScaleRange: 0.2...1.8),
             emojiTemplatePreset: emojiTemplatePreset.normalized(withScaleRange: 0.2...1.8),
             confettiPreset: confettiPreset.normalized
         )
@@ -370,7 +392,7 @@ struct SnowEffectSettings: Equatable, Codable {
         case .snow:
             snowPreset
         case .emoji:
-            emojiPreset
+            emojiPreset(for: emojiSeason)
         case .emojiTemplate:
             emojiTemplatePreset
         case .confetti:
@@ -384,8 +406,28 @@ struct SnowEffectSettings: Equatable, Codable {
             .confettiDefault
         case .emojiTemplate:
             .templateEmojiDefault
-        case .snow, .emoji:
+        case .snow:
             .default
+        case .emoji:
+            .emojiWinterDefault
+        }
+    }
+
+    private static func defaultEmojiPreset(for season: EmojiSeason) -> PresetSettings {
+        switch season {
+        case .winter:
+            .emojiWinterDefault
+        case .autumn:
+            .emojiAutumnDefault
+        }
+    }
+
+    private func emojiPreset(for season: EmojiSeason) -> PresetSettings {
+        switch season {
+        case .winter:
+            emojiWinterPreset
+        case .autumn:
+            emojiAutumnPreset
         }
     }
 
@@ -394,7 +436,12 @@ struct SnowEffectSettings: Equatable, Codable {
         case .snow:
             snowPreset = preset
         case .emoji:
-            emojiPreset = preset
+            switch emojiSeason {
+            case .winter:
+                emojiWinterPreset = preset
+            case .autumn:
+                emojiAutumnPreset = preset
+            }
         case .emojiTemplate:
             emojiTemplatePreset = preset
         case .confetti:
@@ -410,7 +457,12 @@ struct SnowEffectSettings: Equatable, Codable {
         case .snow:
             update(&snowPreset)
         case .emoji:
-            update(&emojiPreset)
+            switch emojiSeason {
+            case .winter:
+                update(&emojiWinterPreset)
+            case .autumn:
+                update(&emojiAutumnPreset)
+            }
         case .emojiTemplate:
             update(&emojiTemplatePreset)
         case .confetti:
@@ -427,6 +479,9 @@ struct SnowEffectSettings: Equatable, Codable {
         case snowPreset
         case legacyLeavesPreset = "leavesPreset"
         case emojiPreset
+        case emojiSeason
+        case emojiWinterPreset
+        case emojiAutumnPreset
         case emojiTemplatePreset
         case confettiPreset
         case emojiSymbol
@@ -448,15 +503,26 @@ struct SnowEffectSettings: Equatable, Codable {
         let decodedSnowPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .snowPreset)
         let decodedLegacyLeavesPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .legacyLeavesPreset)
         let decodedEmojiPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .emojiPreset)
+        let decodedEmojiSeason = try container.decodeIfPresent(EmojiSeason.self, forKey: .emojiSeason) ?? .winter
+        let decodedEmojiWinterPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .emojiWinterPreset)
+        let decodedEmojiAutumnPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .emojiAutumnPreset)
         let decodedEmojiTemplatePreset = try container.decodeIfPresent(PresetSettings.self, forKey: .emojiTemplatePreset)
         let decodedConfettiPreset = try container.decodeIfPresent(PresetSettings.self, forKey: .confettiPreset)
 
-        if decodedSnowPreset != nil || decodedLegacyLeavesPreset != nil || decodedEmojiPreset != nil || decodedEmojiTemplatePreset != nil || decodedConfettiPreset != nil {
+        if decodedSnowPreset != nil
+            || decodedLegacyLeavesPreset != nil
+            || decodedEmojiPreset != nil
+            || decodedEmojiWinterPreset != nil
+            || decodedEmojiAutumnPreset != nil
+            || decodedEmojiTemplatePreset != nil
+            || decodedConfettiPreset != nil {
             self.init(
                 isEnabled: decodedIsEnabled,
                 effectKind: decodedEffectKind,
                 snowPreset: decodedSnowPreset ?? decodedLegacyLeavesPreset ?? .default,
-                emojiPreset: decodedEmojiPreset ?? .default,
+                emojiSeason: decodedEmojiSeason,
+                emojiWinterPreset: decodedEmojiWinterPreset ?? decodedEmojiPreset ?? .emojiWinterDefault,
+                emojiAutumnPreset: decodedEmojiAutumnPreset ?? .emojiAutumnDefault,
                 emojiTemplatePreset: decodedEmojiTemplatePreset ?? .templateEmojiDefault,
                 confettiPreset: decodedConfettiPreset ?? .confettiDefault
             )
@@ -479,7 +545,9 @@ struct SnowEffectSettings: Equatable, Codable {
             isEnabled: decodedIsEnabled,
             effectKind: decodedEffectKind,
             snowPreset: decodedEffectKind == .snow ? legacyPreset : .default,
-            emojiPreset: decodedEffectKind == .emoji ? legacyPreset : .default,
+            emojiSeason: .winter,
+            emojiWinterPreset: decodedEffectKind == .emoji ? legacyPreset : .emojiWinterDefault,
+            emojiAutumnPreset: .emojiAutumnDefault,
             emojiTemplatePreset: decodedEffectKind == .emojiTemplate ? legacyPreset : .templateEmojiDefault,
             confettiPreset: decodedEffectKind == .confetti ? legacyPreset : .confettiDefault
         )
@@ -490,7 +558,9 @@ struct SnowEffectSettings: Equatable, Codable {
         try container.encode(isEnabled, forKey: .isEnabled)
         try container.encode(effectKind, forKey: .effectKind)
         try container.encode(snowPreset, forKey: .snowPreset)
-        try container.encode(emojiPreset, forKey: .emojiPreset)
+        try container.encode(emojiSeason, forKey: .emojiSeason)
+        try container.encode(emojiWinterPreset, forKey: .emojiWinterPreset)
+        try container.encode(emojiAutumnPreset, forKey: .emojiAutumnPreset)
         try container.encode(emojiTemplatePreset, forKey: .emojiTemplatePreset)
         try container.encode(confettiPreset, forKey: .confettiPreset)
     }
@@ -520,14 +590,28 @@ struct SnowEffectSettings: Equatable, Codable {
         normalizedEmojiInput(symbol).map(String.init)
     }
 
-    private static func defaultEmojiSymbol(for kind: PullRefreshEffectKind) -> String {
+    private static func defaultEmojiSymbol(
+        for kind: PullRefreshEffectKind,
+        emojiSeason: EmojiSeason = .autumn
+    ) -> String {
         switch kind {
+        case .emoji:
+            defaultEmojiSymbol(for: emojiSeason)
         case .emojiTemplate:
             defaultTemplateEmojiSymbol
         case .confetti:
             defaultConfettiEmojiSymbol
-        case .snow, .emoji:
+        case .snow:
             defaultEmojiSymbol
+        }
+    }
+
+    private static func defaultEmojiSymbol(for season: EmojiSeason) -> String {
+        switch season {
+        case .winter:
+            defaultEmojiWinterSymbol
+        case .autumn:
+            defaultEmojiAutumnSymbol
         }
     }
 
