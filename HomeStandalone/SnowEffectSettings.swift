@@ -388,6 +388,7 @@ struct SnowEffectSettings: Equatable, Codable {
         if let keychainSettings = loadFromKeychain() {
             let normalizedSettings = keychainSettings.normalized
             normalizedSettings.saveToUserDefaults()
+            normalizedSettings.saveToKeychain()
             return normalizedSettings
         }
 
@@ -527,6 +528,21 @@ struct SnowEffectSettings: Equatable, Codable {
 
     private static let storageKey = "snowEffectSettings.v1"
     private static let keychainAccount = "snowEffectSettings"
+    private static let keychainService = "PullToRefresh.snowEffectSettings"
+    private static var legacyKeychainServices: [String] {
+        var services = [
+            "com.example.ProductAvata.snowEffectSettings",
+            "com.example.ProductAvatarr.snowEffectSettings",
+            "com.pkorostelev.PullToRefreshDemo.snowEffectSettings",
+            "HomeStandalone.snowEffectSettings"
+        ]
+
+        if let bundleIdentifier = Bundle.main.bundleIdentifier {
+            services.append("\(bundleIdentifier).snowEffectSettings")
+        }
+
+        return services.filter { $0 != keychainService }
+    }
 
     private enum CodingKeys: String, CodingKey {
         case isEnabled
@@ -626,10 +642,6 @@ struct SnowEffectSettings: Equatable, Codable {
         try container.encode(confettiPreset, forKey: .confettiPreset)
     }
 
-    private static var keychainService: String {
-        "\(Bundle.main.bundleIdentifier ?? "HomeStandalone").snowEffectSettings"
-    }
-
     private static func loadFromUserDefaults() -> SnowEffectSettings? {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
         return try? JSONDecoder().decode(SnowEffectSettings.self, from: data)
@@ -690,9 +702,23 @@ struct SnowEffectSettings: Equatable, Codable {
     }
 
     private static func loadDataFromKeychain() -> Data? {
+        if let data = loadDataFromKeychain(service: keychainService) {
+            return data
+        }
+
+        for service in legacyKeychainServices {
+            if let data = loadDataFromKeychain(service: service) {
+                return data
+            }
+        }
+
+        return nil
+    }
+
+    private static func loadDataFromKeychain(service: String) -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: keychainService,
+            kSecAttrService as String: service,
             kSecAttrAccount as String: keychainAccount,
             kSecReturnData as String: true,
             kSecMatchLimit as String: kSecMatchLimitOne
