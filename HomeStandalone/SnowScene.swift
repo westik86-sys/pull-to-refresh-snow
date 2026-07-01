@@ -236,6 +236,8 @@ final class SnowScene: SKScene {
     private func makeAlphaSequence(for style: SnowParticleStyle) -> SKKeyframeSequence {
         let peakAlpha = NSNumber(value: Double(style.particleAlpha))
         let settledAlpha = NSNumber(value: Double(style.particleAlpha * 0.92))
+        let fadeOutDuration = min(max(settings.fadeOutDurationPercent / 100, 0.06), 0.40)
+        let fadeOutStartTime = max(0.60, 1 - fadeOutDuration)
 
         let sequence = SKKeyframeSequence(
             keyframeValues: [
@@ -249,7 +251,7 @@ final class SnowScene: SKScene {
                 NSNumber(value: 0),
                 NSNumber(value: 0.08),
                 NSNumber(value: 0.58),
-                NSNumber(value: 0.84),
+                NSNumber(value: fadeOutStartTime),
                 NSNumber(value: 1)
             ]
         )

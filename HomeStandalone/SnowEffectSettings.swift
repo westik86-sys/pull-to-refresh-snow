@@ -55,6 +55,7 @@ struct SnowEffectSettings: Equatable, Codable {
     static let defaultConfettiEmojiSymbol = "🎉"
     static let maxEmojiSymbols = 6
     static let defaultEmojiSpin = 0.35
+    static let defaultFadeOutDurationPercent = 16.0
 
     private struct PresetSettings: Equatable, Codable {
         var emojiSymbol: String = SnowEffectSettings.defaultEmojiSymbol
@@ -66,6 +67,7 @@ struct SnowEffectSettings: Equatable, Codable {
         var turbulenceMultiplier: Double = 1.0
         var overlayHeightPercent: Double = 25.0
         var blurMultiplier: Double = 1.0
+        var fadeOutDurationPercent: Double = SnowEffectSettings.defaultFadeOutDurationPercent
         var emojiSpin: Double = SnowEffectSettings.defaultEmojiSpin
         var confettiParticleMode: ConfettiParticleMode = .confetti
         var confettiCustomShape: ConfettiCustomShape = .star
@@ -88,6 +90,7 @@ struct SnowEffectSettings: Equatable, Codable {
             turbulenceMultiplier: Double = 1.0,
             overlayHeightPercent: Double = 25.0,
             blurMultiplier: Double = 1.0,
+            fadeOutDurationPercent: Double = SnowEffectSettings.defaultFadeOutDurationPercent,
             emojiSpin: Double = SnowEffectSettings.defaultEmojiSpin,
             confettiParticleMode: ConfettiParticleMode = .confetti,
             confettiCustomShape: ConfettiCustomShape = .star,
@@ -104,6 +107,7 @@ struct SnowEffectSettings: Equatable, Codable {
             self.turbulenceMultiplier = turbulenceMultiplier
             self.overlayHeightPercent = overlayHeightPercent
             self.blurMultiplier = blurMultiplier
+            self.fadeOutDurationPercent = fadeOutDurationPercent
             self.emojiSpin = emojiSpin
             self.confettiParticleMode = confettiParticleMode
             self.confettiCustomShape = confettiCustomShape
@@ -127,6 +131,7 @@ struct SnowEffectSettings: Equatable, Codable {
                 turbulenceMultiplier: turbulenceMultiplier.clamped(to: 0...1.8),
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
                 blurMultiplier: blurMultiplier.clamped(to: 0...2),
+                fadeOutDurationPercent: fadeOutDurationPercent.clamped(to: 6...40),
                 emojiSpin: emojiSpin.clamped(to: 0...1),
                 confettiParticleMode: confettiParticleMode,
                 confettiCustomShape: confettiCustomShape,
@@ -146,6 +151,7 @@ struct SnowEffectSettings: Equatable, Codable {
             case turbulenceMultiplier
             case overlayHeightPercent
             case blurMultiplier
+            case fadeOutDurationPercent
             case emojiSpin
             case confettiParticleMode
             case confettiCustomShape
@@ -165,6 +171,8 @@ struct SnowEffectSettings: Equatable, Codable {
             turbulenceMultiplier = try container.decodeIfPresent(Double.self, forKey: .turbulenceMultiplier) ?? 1.0
             overlayHeightPercent = try container.decodeIfPresent(Double.self, forKey: .overlayHeightPercent) ?? 25.0
             blurMultiplier = try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
+            fadeOutDurationPercent = try container.decodeIfPresent(Double.self, forKey: .fadeOutDurationPercent)
+                ?? SnowEffectSettings.defaultFadeOutDurationPercent
             emojiSpin = try container.decodeIfPresent(Double.self, forKey: .emojiSpin) ?? SnowEffectSettings.defaultEmojiSpin
             confettiParticleMode = try container.decodeIfPresent(ConfettiParticleMode.self, forKey: .confettiParticleMode) ?? .confetti
             confettiCustomShape = try container.decodeIfPresent(ConfettiCustomShape.self, forKey: .confettiCustomShape) ?? .star
@@ -184,6 +192,7 @@ struct SnowEffectSettings: Equatable, Codable {
             try container.encode(turbulenceMultiplier, forKey: .turbulenceMultiplier)
             try container.encode(overlayHeightPercent, forKey: .overlayHeightPercent)
             try container.encode(blurMultiplier, forKey: .blurMultiplier)
+            try container.encode(fadeOutDurationPercent, forKey: .fadeOutDurationPercent)
             try container.encode(emojiSpin, forKey: .emojiSpin)
             try container.encode(confettiParticleMode, forKey: .confettiParticleMode)
             try container.encode(confettiCustomShape, forKey: .confettiCustomShape)
@@ -227,7 +236,8 @@ struct SnowEffectSettings: Equatable, Codable {
             alphaMultiplier: alphaMultiplier,
             turbulenceMultiplier: turbulenceMultiplier,
             overlayHeightPercent: overlayHeightPercent,
-            blurMultiplier: blurMultiplier
+            blurMultiplier: blurMultiplier,
+            fadeOutDurationPercent: Self.defaultFadeOutDurationPercent
         )
         setPreset(activePreset, for: effectKind)
     }
@@ -293,6 +303,11 @@ struct SnowEffectSettings: Equatable, Codable {
     var blurMultiplier: Double {
         get { preset(for: effectKind).blurMultiplier }
         set { updatePreset(for: effectKind) { $0.blurMultiplier = newValue } }
+    }
+
+    var fadeOutDurationPercent: Double {
+        get { preset(for: effectKind).fadeOutDurationPercent }
+        set { updatePreset(for: effectKind) { $0.fadeOutDurationPercent = newValue } }
     }
 
     var emojiSpin: Double {
@@ -477,6 +492,7 @@ struct SnowEffectSettings: Equatable, Codable {
         case turbulenceMultiplier
         case overlayHeightPercent
         case blurMultiplier
+        case fadeOutDurationPercent
     }
 
     init(from decoder: Decoder) throws {
@@ -519,7 +535,9 @@ struct SnowEffectSettings: Equatable, Codable {
             alphaMultiplier: try container.decodeIfPresent(Double.self, forKey: .alphaMultiplier) ?? 1.0,
             turbulenceMultiplier: try container.decodeIfPresent(Double.self, forKey: .turbulenceMultiplier) ?? 1.0,
             overlayHeightPercent: try container.decodeIfPresent(Double.self, forKey: .overlayHeightPercent) ?? 25.0,
-            blurMultiplier: try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
+            blurMultiplier: try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0,
+            fadeOutDurationPercent: try container.decodeIfPresent(Double.self, forKey: .fadeOutDurationPercent)
+                ?? Self.defaultFadeOutDurationPercent
         )
 
         self.init(

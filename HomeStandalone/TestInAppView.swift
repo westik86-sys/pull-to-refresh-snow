@@ -5558,6 +5558,14 @@ private struct SnowSettingsSheet: View {
                             internalRange: 1.0...3.5
                         )
 
+                        if snowSettings.effectKind != .confetti {
+                            settingsSlider(
+                                title: "Исчезновение",
+                                value: $snowSettings.fadeOutDurationPercent,
+                                internalRange: 6...40
+                            )
+                        }
+
                         settingsSlider(
                             title: "Высота зоны",
                             value: $snowSettings.overlayHeightPercent,
