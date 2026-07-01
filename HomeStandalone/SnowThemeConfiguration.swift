@@ -20,7 +20,6 @@ enum ParticleTextureSource: Hashable {
     case generated(SnowParticleTextureKind)
     case asset(name: String)
     case emoji(String)
-    case templateEmoji(String)
 }
 
 struct SnowParticleStyle {
@@ -150,11 +149,6 @@ private struct EmojiLayerTuning {
 private struct EmojiRotationVariant {
     let name: String
     let speedMultiplier: CGFloat
-}
-
-private enum EmojiTextureMode {
-    case color
-    case template
 }
 
 struct SnowThemeConfiguration: Equatable {
@@ -347,9 +341,7 @@ struct SnowThemeConfiguration: Equatable {
         case .snow:
             snowConfiguration(for: preset)
         case .emoji:
-            emojiConfiguration(for: preset, emojiSymbols: emojiSymbols, textureMode: .color)
-        case .emojiTemplate:
-            emojiConfiguration(for: preset, emojiSymbols: emojiSymbols, textureMode: .template)
+            emojiConfiguration(for: preset, emojiSymbols: emojiSymbols)
         case .confetti:
             snowConfiguration(for: preset)
         }
@@ -366,67 +358,43 @@ struct SnowThemeConfiguration: Equatable {
 
     private static func emojiConfiguration(
         for preset: SnowVisualPreset,
-        emojiSymbols: [String],
-        textureMode: EmojiTextureMode
+        emojiSymbols: [String]
     ) -> SnowThemeConfiguration {
         let baseConfiguration = snowConfiguration(for: preset)
         let symbols = emojiSymbols.isEmpty ? [SnowEffectSettings.defaultEmojiSymbol] : emojiSymbols
         let densityShare = CGFloat(symbols.count)
-        let layerTunings = emojiLayerTunings(for: textureMode)
+        let layerTunings = emojiLayerTunings()
 
         let layers = baseConfiguration.layers.enumerated().flatMap { layerIndex, baseLayer in
             let visualIndex = min(layerIndex, layerTunings.count - 1)
             let tuning = layerTunings[visualIndex]
 
             return symbols.enumerated().flatMap { symbolIndex, emojiSymbol in
-                let textureSource = emojiTextureSource(emojiSymbol, mode: textureMode)
+                let rotationVariants = emojiRotationVariants(forLayerAt: visualIndex)
+                let rotationShare = CGFloat(rotationVariants.count)
+                let maxRotationSpeed = max(
+                    abs(tuning.particleRotationSpeedRange.lowerBound),
+                    abs(tuning.particleRotationSpeedRange.upperBound)
+                )
 
-                switch textureMode {
-                case .color:
-                    let rotationVariants = emojiRotationVariants(forLayerAt: visualIndex)
-                    let rotationShare = CGFloat(rotationVariants.count)
-                    let maxRotationSpeed = max(
-                        abs(tuning.particleRotationSpeedRange.lowerBound),
-                        abs(tuning.particleRotationSpeedRange.upperBound)
+                return rotationVariants.map { rotationVariant in
+                    let rotationSpeed = maxRotationSpeed * rotationVariant.speedMultiplier
+
+                    return baseLayer.replacingVisuals(
+                        name: "\(tuning.name)-\(symbolIndex)-\(rotationVariant.name)",
+                        textureSource: .emoji(emojiSymbol),
+                        textureDiameter: tuning.textureDiameter,
+                        textureSoftness: tuning.textureSoftness,
+                        birthRate: tuning.birthRate / densityShare / rotationShare,
+                        particleScale: tuning.particleScale,
+                        particleScaleRange: tuning.particleScaleRange,
+                        particleSpeed: tuning.particleSpeed,
+                        particleSpeedRange: tuning.particleSpeedRange,
+                        particleAlpha: tuning.particleAlpha,
+                        particleAlphaRange: tuning.particleAlphaRange,
+                        particleRotationSpeedRange: rotationSpeed...rotationSpeed,
+                        particleColorBlendFactor: 0
                     )
-
-                    return rotationVariants.map { rotationVariant in
-                        let rotationSpeed = maxRotationSpeed * rotationVariant.speedMultiplier
-
-                        return baseLayer.replacingVisuals(
-                            name: "\(tuning.name)-\(symbolIndex)-\(rotationVariant.name)",
-                            textureSource: textureSource,
-                            textureDiameter: tuning.textureDiameter,
-                            textureSoftness: tuning.textureSoftness,
-                            birthRate: tuning.birthRate / densityShare / rotationShare,
-                            particleScale: tuning.particleScale,
-                            particleScaleRange: tuning.particleScaleRange,
-                            particleSpeed: tuning.particleSpeed,
-                            particleSpeedRange: tuning.particleSpeedRange,
-                            particleAlpha: tuning.particleAlpha,
-                            particleAlphaRange: tuning.particleAlphaRange,
-                            particleRotationSpeedRange: rotationSpeed...rotationSpeed,
-                            particleColorBlendFactor: 0
-                        )
-                    }
-                case .template:
-                    return [
-                        baseLayer.replacingVisuals(
-                            name: "\(tuning.name)-\(symbolIndex)",
-                            textureSource: textureSource,
-                            textureDiameter: tuning.textureDiameter,
-                            textureSoftness: tuning.textureSoftness,
-                            birthRate: tuning.birthRate / densityShare,
-                            particleScale: tuning.particleScale,
-                            particleScaleRange: tuning.particleScaleRange,
-                            particleSpeed: tuning.particleSpeed,
-                            particleSpeedRange: tuning.particleSpeedRange,
-                            particleAlpha: tuning.particleAlpha,
-                            particleAlphaRange: tuning.particleAlphaRange,
-                            particleRotationSpeedRange: tuning.particleRotationSpeedRange,
-                            particleColorBlendFactor: 0
-                        )
-                    ]
                 }
             }
         }
@@ -462,102 +430,48 @@ struct SnowThemeConfiguration: Equatable {
         return variants[min(layerIndex, variants.count - 1)]
     }
 
-    private static func emojiTextureSource(_ emojiSymbol: String, mode: EmojiTextureMode) -> ParticleTextureSource {
-        switch mode {
-        case .color:
-            .emoji(emojiSymbol)
-        case .template:
-            .templateEmoji(emojiSymbol)
-        }
-    }
-
-    private static func emojiLayerTunings(for mode: EmojiTextureMode) -> [EmojiLayerTuning] {
-        switch mode {
-        case .color:
-            [
-                EmojiLayerTuning(
-                    name: "back-emoji",
-                    textureDiameter: 44,
-                    textureSoftness: 0.35,
-                    birthRate: 22,
-                    particleScale: 0.24,
-                    particleScaleRange: 0.14,
-                    particleSpeed: 60,
-                    particleSpeedRange: 24,
-                    particleAlpha: 0.18,
-                    particleAlphaRange: 0.06,
-                    particleRotationSpeedRange: -4.0...4.0
-                ),
-                EmojiLayerTuning(
-                    name: "mid-emoji",
-                    textureDiameter: 42,
-                    textureSoftness: 0.45,
-                    birthRate: 16,
-                    particleScale: 0.38,
-                    particleScaleRange: 0.18,
-                    particleSpeed: 98,
-                    particleSpeedRange: 44,
-                    particleAlpha: 0.48,
-                    particleAlphaRange: 0.12,
-                    particleRotationSpeedRange: -6.0...6.0
-                ),
-                EmojiLayerTuning(
-                    name: "front-emoji",
-                    textureDiameter: 52,
-                    textureSoftness: 0.75,
-                    birthRate: 3.5,
-                    particleScale: 0.50,
-                    particleScaleRange: 0.22,
-                    particleSpeed: 152,
-                    particleSpeedRange: 48,
-                    particleAlpha: 0.32,
-                    particleAlphaRange: 0.12,
-                    particleRotationSpeedRange: -5.0...5.0
-                )
-            ]
-        case .template:
-            [
-                EmojiLayerTuning(
-                    name: "back-template-emoji",
-                    textureDiameter: 44,
-                    textureSoftness: 0.35,
-                    birthRate: 22,
-                    particleScale: 0.24,
-                    particleScaleRange: 0.14,
-                    particleSpeed: 60,
-                    particleSpeedRange: 24,
-                    particleAlpha: 0.48,
-                    particleAlphaRange: 0.08,
-                    particleRotationSpeedRange: -4.0...4.0
-                ),
-                EmojiLayerTuning(
-                    name: "mid-template-emoji",
-                    textureDiameter: 42,
-                    textureSoftness: 0.45,
-                    birthRate: 16,
-                    particleScale: 0.38,
-                    particleScaleRange: 0.18,
-                    particleSpeed: 98,
-                    particleSpeedRange: 44,
-                    particleAlpha: 0.82,
-                    particleAlphaRange: 0.14,
-                    particleRotationSpeedRange: -6.0...6.0
-                ),
-                EmojiLayerTuning(
-                    name: "front-template-emoji",
-                    textureDiameter: 52,
-                    textureSoftness: 0.75,
-                    birthRate: 3.5,
-                    particleScale: 0.50,
-                    particleScaleRange: 0.22,
-                    particleSpeed: 152,
-                    particleSpeedRange: 48,
-                    particleAlpha: 0.99,
-                    particleAlphaRange: 0.14,
-                    particleRotationSpeedRange: -5.0...5.0
-                )
-            ]
-        }
+    private static func emojiLayerTunings() -> [EmojiLayerTuning] {
+        [
+            EmojiLayerTuning(
+                name: "back-emoji",
+                textureDiameter: 44,
+                textureSoftness: 0.35,
+                birthRate: 22,
+                particleScale: 0.24,
+                particleScaleRange: 0.14,
+                particleSpeed: 60,
+                particleSpeedRange: 24,
+                particleAlpha: 0.18,
+                particleAlphaRange: 0.06,
+                particleRotationSpeedRange: -4.0...4.0
+            ),
+            EmojiLayerTuning(
+                name: "mid-emoji",
+                textureDiameter: 42,
+                textureSoftness: 0.45,
+                birthRate: 16,
+                particleScale: 0.38,
+                particleScaleRange: 0.18,
+                particleSpeed: 98,
+                particleSpeedRange: 44,
+                particleAlpha: 0.48,
+                particleAlphaRange: 0.12,
+                particleRotationSpeedRange: -6.0...6.0
+            ),
+            EmojiLayerTuning(
+                name: "front-emoji",
+                textureDiameter: 52,
+                textureSoftness: 0.75,
+                birthRate: 3.5,
+                particleScale: 0.50,
+                particleScaleRange: 0.22,
+                particleSpeed: 152,
+                particleSpeedRange: 48,
+                particleAlpha: 0.32,
+                particleAlphaRange: 0.12,
+                particleRotationSpeedRange: -5.0...5.0
+            )
+        ]
     }
 
     func applying(_ settings: SnowEffectSettings) -> SnowThemeConfiguration {

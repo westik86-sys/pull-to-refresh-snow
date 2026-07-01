@@ -5505,7 +5505,6 @@ private struct SnowSettingsSheet: View {
                             Picker("Тип эффекта", selection: $snowSettings.effectKind) {
                                 Text("Снег").tag(PullRefreshEffectKind.snow)
                                 Text("Emoji").tag(PullRefreshEffectKind.emoji)
-                                Text("Моно").tag(PullRefreshEffectKind.emojiTemplate)
                                 Text("Конфетти").tag(PullRefreshEffectKind.confetti)
                             }
                             .pickerStyle(.segmented)
@@ -5528,7 +5527,7 @@ private struct SnowSettingsSheet: View {
                             }
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(snowSettings.effectKind == .emojiTemplate ? "Emoji Mono" : "Emoji")
+                                Text("Emoji")
                                     .font(.system(size: 13, weight: .medium))
                                     .foregroundColor(.secondary)
 
@@ -5782,8 +5781,6 @@ private struct SnowSettingsSheet: View {
             case .autumn:
                 "🍂🍁✨"
             }
-        case .emojiTemplate:
-            "❄️✦✳︎"
         case .snow, .confetti:
             "🍂❄️✨"
         }

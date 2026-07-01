@@ -211,7 +211,7 @@ final class SnowScene: SKScene {
 
     private func particleRotationSpeed(for style: SnowParticleStyle) -> CGFloat {
         switch style.textureSource {
-        case .emoji(_), .templateEmoji(_):
+        case .emoji(_):
             break
         case .generated, .asset:
             return CGFloat.random(in: style.particleRotationSpeedRange)
@@ -234,10 +234,6 @@ final class SnowScene: SKScene {
     }
 
     private func makeAlphaSequence(for style: SnowParticleStyle) -> SKKeyframeSequence {
-        if case .templateEmoji = style.textureSource {
-            return makeTemplateEmojiAlphaSequence(for: style)
-        }
-
         let peakAlpha = NSNumber(value: Double(style.particleAlpha))
         let settledAlpha = NSNumber(value: Double(style.particleAlpha * 0.92))
 
@@ -254,31 +250,6 @@ final class SnowScene: SKScene {
                 NSNumber(value: 0.08),
                 NSNumber(value: 0.58),
                 NSNumber(value: 0.84),
-                NSNumber(value: 1)
-            ]
-        )
-        sequence.interpolationMode = .linear
-        return sequence
-    }
-
-    private func makeTemplateEmojiAlphaSequence(for style: SnowParticleStyle) -> SKKeyframeSequence {
-        let peakAlpha = NSNumber(value: Double(style.particleAlpha))
-        let settledAlpha = NSNumber(value: Double(style.particleAlpha * 0.98))
-        let lateAlpha = NSNumber(value: Double(style.particleAlpha * 0.82))
-
-        let sequence = SKKeyframeSequence(
-            keyframeValues: [
-                NSNumber(value: 0),
-                peakAlpha,
-                settledAlpha,
-                lateAlpha,
-                NSNumber(value: 0)
-            ],
-            times: [
-                NSNumber(value: 0),
-                NSNumber(value: 0.05),
-                NSNumber(value: 0.72),
-                NSNumber(value: 0.94),
                 NSNumber(value: 1)
             ]
         )
