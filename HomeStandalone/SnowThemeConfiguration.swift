@@ -56,6 +56,7 @@ extension SnowParticleStyle {
         textureDiameter: CGFloat,
         textureSoftness: CGFloat? = nil,
         birthRate: CGFloat? = nil,
+        particleRotationSpeedRange: ClosedRange<CGFloat>? = nil,
         particleColor: UIColor? = nil,
         particleColorBlendFactor: CGFloat? = nil
     ) -> SnowParticleStyle {
@@ -77,7 +78,7 @@ extension SnowParticleStyle {
             particleAlphaRange: particleAlphaRange,
             particleAlphaSpeedRange: particleAlphaSpeedRange,
             particleRotationRange: particleRotationRange,
-            particleRotationSpeedRange: particleRotationSpeedRange,
+            particleRotationSpeedRange: particleRotationSpeedRange ?? self.particleRotationSpeedRange,
             emissionAngleRange: emissionAngleRange,
             xAccelerationRange: xAccelerationRange,
             yAccelerationRange: yAccelerationRange,
@@ -123,6 +124,11 @@ extension SnowParticleStyle {
             particleBlendMode: particleBlendMode
         )
     }
+}
+
+private struct EmojiRotationVariant {
+    let name: String
+    let speed: CGFloat
 }
 
 struct SnowThemeConfiguration: Equatable {
@@ -339,18 +345,46 @@ struct SnowThemeConfiguration: Equatable {
         let densityShare = CGFloat(symbols.count)
         let layerNames = ["back-emoji", "mid-emoji", "front-emoji"]
         let textureDiameters: [CGFloat] = [30, 38, 46]
+        let rotationVariants: [[EmojiRotationVariant]] = [
+            [
+                EmojiRotationVariant(name: "still", speed: 0.0),
+                EmojiRotationVariant(name: "counter-slow", speed: -0.18),
+                EmojiRotationVariant(name: "clock-slow", speed: 0.22),
+                EmojiRotationVariant(name: "counter-drift", speed: -0.35),
+                EmojiRotationVariant(name: "clock-drift", speed: 0.38)
+            ],
+            [
+                EmojiRotationVariant(name: "still", speed: 0.0),
+                EmojiRotationVariant(name: "counter-slow", speed: -0.35),
+                EmojiRotationVariant(name: "clock-slow", speed: 0.45),
+                EmojiRotationVariant(name: "counter-mid", speed: -0.75),
+                EmojiRotationVariant(name: "clock-mid", speed: 0.9)
+            ],
+            [
+                EmojiRotationVariant(name: "still", speed: 0.0),
+                EmojiRotationVariant(name: "counter-slow", speed: -0.18),
+                EmojiRotationVariant(name: "clock-slow", speed: 0.24),
+                EmojiRotationVariant(name: "counter-drift", speed: -0.42),
+                EmojiRotationVariant(name: "clock-drift", speed: 0.5)
+            ]
+        ]
 
         let layers = baseConfiguration.layers.enumerated().flatMap { layerIndex, baseLayer in
             let visualIndex = min(layerIndex, textureDiameters.count - 1)
+            let layerRotationVariants = rotationVariants[min(layerIndex, rotationVariants.count - 1)]
+            let rotationShare = CGFloat(layerRotationVariants.count)
 
-            return symbols.enumerated().map { symbolIndex, emojiSymbol in
-                baseLayer.replacingVisuals(
-                    name: "\(layerNames[visualIndex])-\(symbolIndex)",
-                    textureSource: .emoji(emojiSymbol),
-                    textureDiameter: textureDiameters[visualIndex],
-                    birthRate: baseLayer.birthRate / densityShare,
-                    particleColorBlendFactor: 0
-                )
+            return symbols.enumerated().flatMap { symbolIndex, emojiSymbol in
+                layerRotationVariants.map { rotationVariant in
+                    baseLayer.replacingVisuals(
+                        name: "\(layerNames[visualIndex])-\(symbolIndex)-\(rotationVariant.name)",
+                        textureSource: .emoji(emojiSymbol),
+                        textureDiameter: textureDiameters[visualIndex],
+                        birthRate: baseLayer.birthRate / densityShare / rotationShare,
+                        particleRotationSpeedRange: rotationVariant.speed...rotationVariant.speed,
+                        particleColorBlendFactor: 0
+                    )
+                }
             }
         }
 
