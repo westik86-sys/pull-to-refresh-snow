@@ -5564,6 +5564,30 @@ private struct SnowSettingsSheet: View {
                                 value: $snowSettings.fadeOutDurationPercent,
                                 internalRange: 6...40
                             )
+
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Слои исчезновения")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(.secondary)
+
+                                settingsSlider(
+                                    title: "Задний слой",
+                                    value: $snowSettings.backLayerFadeOutMultiplier,
+                                    internalRange: layerFadeOutMultiplierRange
+                                )
+
+                                settingsSlider(
+                                    title: "Средний слой",
+                                    value: $snowSettings.midLayerFadeOutMultiplier,
+                                    internalRange: layerFadeOutMultiplierRange
+                                )
+
+                                settingsSlider(
+                                    title: "Передний слой",
+                                    value: $snowSettings.frontLayerFadeOutMultiplier,
+                                    internalRange: layerFadeOutMultiplierRange
+                                )
+                            }
                         }
 
                         settingsSlider(
@@ -5778,6 +5802,10 @@ private struct SnowSettingsSheet: View {
 
     private var particleScaleRange: ClosedRange<Double> {
         snowSettings.effectKind.usesEmojiInput ? 0.2...1.8 : 0.55...1.8
+    }
+
+    private var layerFadeOutMultiplierRange: ClosedRange<Double> {
+        0.5...1.5
     }
 
     private var emojiInputPlaceholder: String {

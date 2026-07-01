@@ -56,6 +56,7 @@ struct SnowEffectSettings: Equatable, Codable {
     static let maxEmojiSymbols = 6
     static let defaultEmojiSpin = 0.35
     static let defaultFadeOutDurationPercent = 16.0
+    static let defaultLayerFadeOutMultiplier = 1.0
 
     private struct PresetSettings: Equatable, Codable {
         var emojiSymbol: String = SnowEffectSettings.defaultEmojiSymbol
@@ -68,6 +69,9 @@ struct SnowEffectSettings: Equatable, Codable {
         var overlayHeightPercent: Double = 25.0
         var blurMultiplier: Double = 1.0
         var fadeOutDurationPercent: Double = SnowEffectSettings.defaultFadeOutDurationPercent
+        var backLayerFadeOutMultiplier: Double = SnowEffectSettings.defaultLayerFadeOutMultiplier
+        var midLayerFadeOutMultiplier: Double = SnowEffectSettings.defaultLayerFadeOutMultiplier
+        var frontLayerFadeOutMultiplier: Double = SnowEffectSettings.defaultLayerFadeOutMultiplier
         var emojiSpin: Double = SnowEffectSettings.defaultEmojiSpin
         var confettiParticleMode: ConfettiParticleMode = .confetti
         var confettiCustomShape: ConfettiCustomShape = .star
@@ -91,6 +95,9 @@ struct SnowEffectSettings: Equatable, Codable {
             overlayHeightPercent: Double = 25.0,
             blurMultiplier: Double = 1.0,
             fadeOutDurationPercent: Double = SnowEffectSettings.defaultFadeOutDurationPercent,
+            backLayerFadeOutMultiplier: Double = SnowEffectSettings.defaultLayerFadeOutMultiplier,
+            midLayerFadeOutMultiplier: Double = SnowEffectSettings.defaultLayerFadeOutMultiplier,
+            frontLayerFadeOutMultiplier: Double = SnowEffectSettings.defaultLayerFadeOutMultiplier,
             emojiSpin: Double = SnowEffectSettings.defaultEmojiSpin,
             confettiParticleMode: ConfettiParticleMode = .confetti,
             confettiCustomShape: ConfettiCustomShape = .star,
@@ -108,6 +115,9 @@ struct SnowEffectSettings: Equatable, Codable {
             self.overlayHeightPercent = overlayHeightPercent
             self.blurMultiplier = blurMultiplier
             self.fadeOutDurationPercent = fadeOutDurationPercent
+            self.backLayerFadeOutMultiplier = backLayerFadeOutMultiplier
+            self.midLayerFadeOutMultiplier = midLayerFadeOutMultiplier
+            self.frontLayerFadeOutMultiplier = frontLayerFadeOutMultiplier
             self.emojiSpin = emojiSpin
             self.confettiParticleMode = confettiParticleMode
             self.confettiCustomShape = confettiCustomShape
@@ -132,6 +142,9 @@ struct SnowEffectSettings: Equatable, Codable {
                 overlayHeightPercent: overlayHeightPercent.clamped(to: 0...100),
                 blurMultiplier: blurMultiplier.clamped(to: 0...2),
                 fadeOutDurationPercent: fadeOutDurationPercent.clamped(to: 6...40),
+                backLayerFadeOutMultiplier: backLayerFadeOutMultiplier.clamped(to: 0.5...1.5),
+                midLayerFadeOutMultiplier: midLayerFadeOutMultiplier.clamped(to: 0.5...1.5),
+                frontLayerFadeOutMultiplier: frontLayerFadeOutMultiplier.clamped(to: 0.5...1.5),
                 emojiSpin: emojiSpin.clamped(to: 0...1),
                 confettiParticleMode: confettiParticleMode,
                 confettiCustomShape: confettiCustomShape,
@@ -152,6 +165,9 @@ struct SnowEffectSettings: Equatable, Codable {
             case overlayHeightPercent
             case blurMultiplier
             case fadeOutDurationPercent
+            case backLayerFadeOutMultiplier
+            case midLayerFadeOutMultiplier
+            case frontLayerFadeOutMultiplier
             case emojiSpin
             case confettiParticleMode
             case confettiCustomShape
@@ -173,6 +189,12 @@ struct SnowEffectSettings: Equatable, Codable {
             blurMultiplier = try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0
             fadeOutDurationPercent = try container.decodeIfPresent(Double.self, forKey: .fadeOutDurationPercent)
                 ?? SnowEffectSettings.defaultFadeOutDurationPercent
+            backLayerFadeOutMultiplier = try container.decodeIfPresent(Double.self, forKey: .backLayerFadeOutMultiplier)
+                ?? SnowEffectSettings.defaultLayerFadeOutMultiplier
+            midLayerFadeOutMultiplier = try container.decodeIfPresent(Double.self, forKey: .midLayerFadeOutMultiplier)
+                ?? SnowEffectSettings.defaultLayerFadeOutMultiplier
+            frontLayerFadeOutMultiplier = try container.decodeIfPresent(Double.self, forKey: .frontLayerFadeOutMultiplier)
+                ?? SnowEffectSettings.defaultLayerFadeOutMultiplier
             emojiSpin = try container.decodeIfPresent(Double.self, forKey: .emojiSpin) ?? SnowEffectSettings.defaultEmojiSpin
             confettiParticleMode = try container.decodeIfPresent(ConfettiParticleMode.self, forKey: .confettiParticleMode) ?? .confetti
             confettiCustomShape = try container.decodeIfPresent(ConfettiCustomShape.self, forKey: .confettiCustomShape) ?? .star
@@ -193,6 +215,9 @@ struct SnowEffectSettings: Equatable, Codable {
             try container.encode(overlayHeightPercent, forKey: .overlayHeightPercent)
             try container.encode(blurMultiplier, forKey: .blurMultiplier)
             try container.encode(fadeOutDurationPercent, forKey: .fadeOutDurationPercent)
+            try container.encode(backLayerFadeOutMultiplier, forKey: .backLayerFadeOutMultiplier)
+            try container.encode(midLayerFadeOutMultiplier, forKey: .midLayerFadeOutMultiplier)
+            try container.encode(frontLayerFadeOutMultiplier, forKey: .frontLayerFadeOutMultiplier)
             try container.encode(emojiSpin, forKey: .emojiSpin)
             try container.encode(confettiParticleMode, forKey: .confettiParticleMode)
             try container.encode(confettiCustomShape, forKey: .confettiCustomShape)
@@ -310,6 +335,21 @@ struct SnowEffectSettings: Equatable, Codable {
         set { updatePreset(for: effectKind) { $0.fadeOutDurationPercent = newValue } }
     }
 
+    var backLayerFadeOutMultiplier: Double {
+        get { preset(for: effectKind).backLayerFadeOutMultiplier }
+        set { updatePreset(for: effectKind) { $0.backLayerFadeOutMultiplier = newValue } }
+    }
+
+    var midLayerFadeOutMultiplier: Double {
+        get { preset(for: effectKind).midLayerFadeOutMultiplier }
+        set { updatePreset(for: effectKind) { $0.midLayerFadeOutMultiplier = newValue } }
+    }
+
+    var frontLayerFadeOutMultiplier: Double {
+        get { preset(for: effectKind).frontLayerFadeOutMultiplier }
+        set { updatePreset(for: effectKind) { $0.frontLayerFadeOutMultiplier = newValue } }
+    }
+
     var emojiSpin: Double {
         get { preset(for: effectKind).emojiSpin }
         set { updatePreset(for: effectKind) { $0.emojiSpin = newValue } }
@@ -381,6 +421,21 @@ struct SnowEffectSettings: Equatable, Codable {
     var resolvedConfettiEmojiSymbol: String {
         let normalizedSymbol = Self.normalizedEmojiInput(emojiSymbol)
         return normalizedSymbol.isEmpty ? Self.defaultConfettiEmojiSymbol : String(normalizedSymbol.prefix(1))
+    }
+
+    func fadeOutDurationPercent(forParticleLayerName layerName: String) -> Double {
+        let layerMultiplier: Double
+        if layerName.hasPrefix("back-") {
+            layerMultiplier = backLayerFadeOutMultiplier
+        } else if layerName.hasPrefix("mid-") {
+            layerMultiplier = midLayerFadeOutMultiplier
+        } else if layerName.hasPrefix("front-") {
+            layerMultiplier = frontLayerFadeOutMultiplier
+        } else {
+            layerMultiplier = Self.defaultLayerFadeOutMultiplier
+        }
+
+        return (fadeOutDurationPercent * layerMultiplier).clamped(to: 6...40)
     }
 
     private var normalized: SnowEffectSettings {
@@ -493,6 +548,9 @@ struct SnowEffectSettings: Equatable, Codable {
         case overlayHeightPercent
         case blurMultiplier
         case fadeOutDurationPercent
+        case backLayerFadeOutMultiplier
+        case midLayerFadeOutMultiplier
+        case frontLayerFadeOutMultiplier
     }
 
     init(from decoder: Decoder) throws {
@@ -537,7 +595,13 @@ struct SnowEffectSettings: Equatable, Codable {
             overlayHeightPercent: try container.decodeIfPresent(Double.self, forKey: .overlayHeightPercent) ?? 25.0,
             blurMultiplier: try container.decodeIfPresent(Double.self, forKey: .blurMultiplier) ?? 1.0,
             fadeOutDurationPercent: try container.decodeIfPresent(Double.self, forKey: .fadeOutDurationPercent)
-                ?? Self.defaultFadeOutDurationPercent
+                ?? Self.defaultFadeOutDurationPercent,
+            backLayerFadeOutMultiplier: try container.decodeIfPresent(Double.self, forKey: .backLayerFadeOutMultiplier)
+                ?? Self.defaultLayerFadeOutMultiplier,
+            midLayerFadeOutMultiplier: try container.decodeIfPresent(Double.self, forKey: .midLayerFadeOutMultiplier)
+                ?? Self.defaultLayerFadeOutMultiplier,
+            frontLayerFadeOutMultiplier: try container.decodeIfPresent(Double.self, forKey: .frontLayerFadeOutMultiplier)
+                ?? Self.defaultLayerFadeOutMultiplier
         )
 
         self.init(
