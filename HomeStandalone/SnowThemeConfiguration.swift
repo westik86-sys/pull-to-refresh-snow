@@ -406,24 +406,24 @@ struct SnowThemeConfiguration: Equatable {
         let variants: [[EmojiRotationVariant]] = [
             [
                 EmojiRotationVariant(name: "still", speedMultiplier: 0.0),
-                EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.32),
-                EmojiRotationVariant(name: "clock-slow", speedMultiplier: 0.40),
-                EmojiRotationVariant(name: "counter-drift", speedMultiplier: -0.62),
-                EmojiRotationVariant(name: "clock-drift", speedMultiplier: 0.72)
+                EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.38),
+                EmojiRotationVariant(name: "clock-slow", speedMultiplier: 0.48),
+                EmojiRotationVariant(name: "counter-drift", speedMultiplier: -0.74),
+                EmojiRotationVariant(name: "clock-drift", speedMultiplier: 0.86)
             ],
             [
                 EmojiRotationVariant(name: "still", speedMultiplier: 0.0),
-                EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.28),
+                EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.34),
+                EmojiRotationVariant(name: "clock-slow", speedMultiplier: 0.43),
+                EmojiRotationVariant(name: "counter-mid", speedMultiplier: -0.84),
+                EmojiRotationVariant(name: "clock-mid", speedMultiplier: 1.02)
+            ],
+            [
+                EmojiRotationVariant(name: "still", speedMultiplier: 0.0),
+                EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.26),
                 EmojiRotationVariant(name: "clock-slow", speedMultiplier: 0.36),
-                EmojiRotationVariant(name: "counter-mid", speedMultiplier: -0.70),
-                EmojiRotationVariant(name: "clock-mid", speedMultiplier: 0.85)
-            ],
-            [
-                EmojiRotationVariant(name: "still", speedMultiplier: 0.0),
-                EmojiRotationVariant(name: "counter-slow", speedMultiplier: -0.22),
-                EmojiRotationVariant(name: "clock-slow", speedMultiplier: 0.30),
-                EmojiRotationVariant(name: "counter-drift", speedMultiplier: -0.52),
-                EmojiRotationVariant(name: "clock-drift", speedMultiplier: 0.62)
+                EmojiRotationVariant(name: "counter-drift", speedMultiplier: -0.62),
+                EmojiRotationVariant(name: "clock-drift", speedMultiplier: 0.74)
             ]
         ]
 
