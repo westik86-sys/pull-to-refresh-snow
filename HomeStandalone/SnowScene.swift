@@ -196,7 +196,7 @@ final class SnowScene: SKScene {
             emitter.particleRotation = 0
         }
         emitter.particleRotationRange = style.particleRotationRange
-        emitter.particleRotationSpeed = CGFloat.random(in: style.particleRotationSpeedRange)
+        emitter.particleRotationSpeed = particleRotationSpeed(for: style)
         emitter.emissionAngle = -CGFloat.pi / 2
         emitter.emissionAngleRange = style.emissionAngleRange
         emitter.xAcceleration = CGFloat.random(in: style.xAccelerationRange)
@@ -209,7 +209,35 @@ final class SnowScene: SKScene {
         emitterOffsets[ObjectIdentifier(emitter)] = style.offsetY
     }
 
+    private func particleRotationSpeed(for style: SnowParticleStyle) -> CGFloat {
+        switch style.textureSource {
+        case .emoji(_), .templateEmoji(_):
+            break
+        case .generated, .asset:
+            return CGFloat.random(in: style.particleRotationSpeedRange)
+        }
+
+        if style.particleRotationSpeedRange.lowerBound == style.particleRotationSpeedRange.upperBound {
+            return style.particleRotationSpeedRange.lowerBound
+        }
+
+        let maxMagnitude = max(
+            abs(style.particleRotationSpeedRange.lowerBound),
+            abs(style.particleRotationSpeedRange.upperBound)
+        )
+        guard maxMagnitude > 0 else { return 0 }
+
+        let scalarSum = style.name.unicodeScalars.reduce(0) { $0 + Int($1.value) }
+        let direction: CGFloat = scalarSum.isMultiple(of: 2) ? -1 : 1
+        let variation = CGFloat(scalarSum % 23) / 100
+        return direction * maxMagnitude * (0.8 + variation)
+    }
+
     private func makeAlphaSequence(for style: SnowParticleStyle) -> SKKeyframeSequence {
+        if case .templateEmoji = style.textureSource {
+            return makeTemplateEmojiAlphaSequence(for: style)
+        }
+
         let peakAlpha = NSNumber(value: Double(style.particleAlpha))
         let settledAlpha = NSNumber(value: Double(style.particleAlpha * 0.92))
 
@@ -226,6 +254,31 @@ final class SnowScene: SKScene {
                 NSNumber(value: 0.08),
                 NSNumber(value: 0.58),
                 NSNumber(value: 0.84),
+                NSNumber(value: 1)
+            ]
+        )
+        sequence.interpolationMode = .linear
+        return sequence
+    }
+
+    private func makeTemplateEmojiAlphaSequence(for style: SnowParticleStyle) -> SKKeyframeSequence {
+        let peakAlpha = NSNumber(value: Double(style.particleAlpha))
+        let settledAlpha = NSNumber(value: Double(style.particleAlpha * 0.98))
+        let lateAlpha = NSNumber(value: Double(style.particleAlpha * 0.82))
+
+        let sequence = SKKeyframeSequence(
+            keyframeValues: [
+                NSNumber(value: 0),
+                peakAlpha,
+                settledAlpha,
+                lateAlpha,
+                NSNumber(value: 0)
+            ],
+            times: [
+                NSNumber(value: 0),
+                NSNumber(value: 0.05),
+                NSNumber(value: 0.72),
+                NSNumber(value: 0.94),
                 NSNumber(value: 1)
             ]
         )
